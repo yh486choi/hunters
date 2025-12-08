@@ -2,30 +2,37 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>GAS 응답 테스트</title>
+  <title>GAS 연결 테스트</title>
 </head>
 <body>
-  <h1>테스트</h1>
-  <input id="name" placeholder="이름"><br>
-  <input id="message" placeholder="메시지"><br>
-  <button onclick="send()">보내기</button>
-  <pre id="result"></pre>
+  <h1>Google Sheets 연동 테스트</h1>
+  <input id="name" placeholder="이름 입력"><br>
+  <input id="message" placeholder="메시지 입력"><br>
+  <button onclick="sendData()">보내기</button>
+  <pre id="result">응답 대기 중...</pre>
 
   <script>
-    function send() {
+    function sendData() {
       const name = document.getElementById("name").value;
       const message = document.getElementById("message").value;
 
       fetch("https://script.google.com/macros/s/AKfycbwMDasfoRM2NO6gib0tk53JptopY_-uRvZjlT_KPVlWpoYbDOLpXh8KSyYT4oPxgJIQ/exec", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ name, message })
       })
-      .then(res => res.json())
-      .then(data => document.getElementById("result").textContent = JSON.stringify(data, null, 2))
-      .catch(err => document.getElementById("result").textContent = "❌ 오류: " + err.message);
+      .then(res => res.text()) // 먼저 응답을 텍스트로 확인
+      .then(text => {
+        console.log("응답 원문:", text);
+        const data = JSON.parse(text);
+        document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("result").textContent = "❌ 오류: " + err.message;
+      });
     }
   </script>
 </body>
 </html>
-
