@@ -2,37 +2,30 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>GAS 연결 테스트</title>
+  <title>헌터스 메인</title>
 </head>
 <body>
-  <h1>Google Sheets 연동 테스트</h1>
-  <input id="name" placeholder="이름 입력"><br>
-  <input id="message" placeholder="메시지 입력"><br>
-  <button onclick="sendData()">보내기</button>
-  <pre id="result">응답 대기 중...</pre>
+  <h1>헌터스 메인 페이지</h1>
+
+  <!-- 기존 메인 컨텐츠들 -->
+
+  <!-- 선수관리 버튼 -->
+  <button id="adminBtn">선수관리</button>
 
   <script>
-    function sendData() {
-      const name = document.getElementById("name").value;
-      const message = document.getElementById("message").value;
+    document.getElementById('adminBtn').addEventListener('click', () => {
+      const pw = prompt('관리자 비밀번호를 입력하세요');
 
-      fetch("https://script.google.com/macros/s/AKfycbwMDasfoRM2NO6gib0tk53JptopY_-uRvZjlT_KPVlWpoYbDOLpXh8KSyYT4oPxgJIQ/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name, message })
-      })
-      .then(res => res.text()) // 먼저 응답을 텍스트로 확인
-      .then(text => {
-        console.log("응답 원문:", text);
-        const data = JSON.parse(text);
-        document.getElementById("result").textContent = JSON.stringify(data, null, 2);
-      })
-      .catch(err => {
-        document.getElementById("result").textContent = "❌ 오류: " + err.message;
-      });
-    }
+      if (pw === '1234') {
+        // 간단한 인증 토큰 저장
+        localStorage.setItem('hunters_admin_auth', 'ok');
+        // 관리자 페이지로 이동
+        window.location.href = 'admin.html';
+      } else if (pw !== null) {
+        // 취소(null) 말고 다른 값을 넣고 틀렸을 때만 경고
+        alert('비밀번호가 틀렸습니다');
+      }
+    });
   </script>
 </body>
 </html>
