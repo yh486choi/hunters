@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
-  <title>⚾ 헌터스 선수 DB 관리 ⚾</title>
+  <title>⚾ 삼성 헌터스 선수 포지션 DB ⚾</title>
   <style>
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #999;
       padding: 6px;
       text-align: center;
     }
+
     th {
       background-color: #f0f0f0;
     }
-    input[type="text"], input[type="number"] {
+
+    input[type="text"],
+    input[type="number"] {
       width: 5em;
     }
+
     select {
       width: 6em;
     }
+
     .controls {
       text-align: right;
       margin: 10px;
     }
   </style>
 </head>
+
 <body>
   <div style='text-align: left; margin: 10px;'>
     <button onclick='goMain()'>홈 화면</button>
   </div>
 
-  <h1>⚾ 헌터스 선수 DB 관리 ⚾</h1>
+  <h1>⚾ 삼성 헌터스 선수 포지션 DB ⚾</h1>
 
   <div class="controls">
     <button onclick="saveAll()">💾 저장</button>
@@ -45,8 +54,15 @@
   <table>
     <thead>
       <tr>
-        <th>이름</th><th>배번</th>
-        <th>투수</th><th>포수</th><th>1루수</th><th>2루수</th><th>3루수</th><th>유격수</th><th>외야수</th>
+        <th>이름</th>
+        <th>배번</th>
+        <th>투수</th>
+        <th>포수</th>
+        <th>1루수</th>
+        <th>2루수</th>
+        <th>3루수</th>
+        <th>유격수</th>
+        <th>외야수</th>
         <th>추가</th>
       </tr>
     </thead>
@@ -235,6 +251,12 @@
     }
 
     async function saveAll() {
+      const pw = prompt("저장을 하려면 비밀번호를 입력하세요");
+      if (pw !== "1982") {
+        alert("❌ 비밀번호가 틀렸습니다. 저장이 취소되었습니다.");
+        return;
+      }
+
       const rows = Array.from(document.querySelectorAll("#playerTable tbody tr"));
       const players = rows.map(row => {
         const inputs = row.querySelectorAll("input");
@@ -270,8 +292,10 @@
       }
     }
 
+
     initAddSelects();
     loadPlayers();
   </script>
 </body>
+
 </html>
