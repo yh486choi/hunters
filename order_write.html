@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang='ko'>
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset='UTF-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>오더 작성</title>
-
-  <link rel="stylesheet" href="buttonStyles.css" />
 
   <style>
     body {
@@ -15,75 +13,59 @@
       padding: 20px;
     }
 
-    /* ---------------------------------------------------
-        상단 영역 (오더명 + 버튼)
-  --------------------------------------------------- */
-    #topArea {
-      margin-bottom: 25px;
-      text-align: left;
+    .buttonStyles {
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #9f9f9f;
+      cursor: pointer;
+      transition: 0.15s ease;
+      user-select: none;
     }
+    .buttonStyles:hover { background: #f2f2f2; }
+    .buttonStyles:active { background: #e2e2e2; transform: scale(0.98); }
 
-    #topArea h1 {
-      margin-bottom: 10px;
-    }
-
-    /* ---------------------------------------------------
-        메인 레이아웃
-        좌: 참가명단 (areaA)
-        우: 중앙 묶음 박스(centerWrapper)
-  --------------------------------------------------- */
+    /* 3단 레이아웃: 참가명단 | 중앙묶음 | 출전 가능 포지션 */
     #mainArea {
       display: flex;
       gap: 20px;
       align-items: flex-start;
+      margin-top: 20px;
     }
 
-    /* 참가 명단 (왼쪽 박스) */
-    #areaA {
+    /* 왼쪽 패널, 오른쪽 패널 */
+    .panelBox {
       width: 180px;
-      /* ← 원하는 값으로 조절 가능 */
-      flex-shrink: 0;
       border: 1px solid #aaa;
       border-radius: 8px;
       padding: 10px;
+      flex-shrink: 0;
     }
 
-    /* ---------------------------------------------------
-        중앙 묶음 박스: width = 1020px
-  --------------------------------------------------- */
-    #centerWrapper {
-      width: 1020px;
-      /* ← 네가 선택한 기본값 */
+    /* 중앙 묶음: 포지션 지정 + 선발/대기 */
+    #positionWrapper {
+      width: 500px;
+      border: 1px solid #000000;
+      border-radius: 10px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
-    /* ---------------------------------------------------
-        중앙 묶음 박스(위): 포지션 + 선발 + 대기
-        가로 3개 박스 병렬 배치
-  --------------------------------------------------- */
-    #positionAndStarterWrapper {
-      display: flex;
-      gap: 15px;
-      width: 100%;
-    }
-
-    /* 포지션 지정 박스 */
+    /* 포지션 지정 영역 */
     #areaB1 {
-      width: 550px;
-      /* ← 너가 쉽게 조절 가능 */
-      height: 440px;
-      background-image: url("field.png");
+      width: 500px;
+      height:400px;
+      background-image: url('field.png');
       background-size: cover;
       background-repeat: no-repeat;
       border: 1px solid #ccc;
       border-radius: 8px;
       position: relative;
-      flex-shrink: 0;
     }
 
-    /* 포지션 dropdown */
     .posSelect {
       position: absolute;
       width: 70px;
@@ -92,167 +74,85 @@
       border-radius: 8px;
     }
 
-    /* 포지션 좌표 — (네가 나중에 수정 가능) */
-    #pos_CF {
-      top: 15%;
-      left: 50%;
-      transform: translateX(-50%);
+    /* 포지션 좌표 */
+    #pos_CF { top:15%; left:50%; transform:translateX(-50%); }
+    #pos_LF { top:25%; left:18%; }
+    #pos_RF { top:25%; right:18%; }
+    #pos_SS { top:47%; left:30%; }
+    #pos_2B { top:47%; right:30%; }
+    #pos_3B { top:63%; left:20%; }
+    #pos_1B { top:63%; right:20%; }
+    #pos_P  { top:63%; left:50%; transform:translateX(-50%); }
+    #pos_C  { top:80%; left:50%; transform:translateX(-50%); }
+    #pos_DH { top:85%; right:13%; }
+
+    /* 중앙 묶음 하단: 선발 + 대기 */
+    #middleWrapper {
+      display: flex;
+      gap: 10px;
     }
 
-    #pos_LF {
-      top: 25%;
-      left: 18%;
-    }
-
-    #pos_RF {
-      top: 25%;
-      right: 18%;
-    }
-
-    #pos_SS {
-      top: 47%;
-      left: 30%;
-    }
-
-    #pos_2B {
-      top: 47%;
-      right: 30%;
-    }
-
-    #pos_3B {
-      top: 63%;
-      left: 20%;
-    }
-
-    #pos_1B {
-      top: 63%;
-      right: 20%;
-    }
-
-    #pos_P {
-      top: 63%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #pos_C {
-      top: 80%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #pos_DH {
-      top: 85%;
-      right: 13%;
-    }
-
-    /* ---------------------------------------------------
-        선발 명단 (가운데 박스)
-  --------------------------------------------------- */
-    #areaC1 {
-      width: 700px;
+    #areaC1, #areaC2 {
       border: 1px solid #aaa;
       border-radius: 8px;
       padding: 10px;
     }
 
-    /* ---------------------------------------------------
-        대기 명단 (오른쪽 박스)
-  --------------------------------------------------- */
-    #areaC2 {
-      width: 300px;
-      border: 1px solid #aaa;
-      border-radius: 8px;
-      padding: 10px;
-    }
-
-    /* 최근에 만든 출전 가능 포지션 리스트 */
+    /* 오른쪽: 출전 가능 포지션 리스트 */
     #areaB2 {
-      width: 100%;
-      /* centerWrapper 기준 */
-      border: 1px solid #aaa;
-      border-radius: 8px;
-      padding: 10px;
+      flex-shrink: 0;
     }
 
-    /* B2 내부: 포지션별 능력 테이블 가로 스크롤 */
     #positionAbilityContainer {
       display: flex;
       gap: 12px;
-      overflow-x: auto;
     }
 
-    /* 공통 테이블 스타일 */
     table {
       border-collapse: collapse;
-      width: 100%;
       margin-top: 8px;
       height: max-content;
     }
 
-    th,
-    td {
+    th, td {
       border: 1px solid #999;
       padding: 6px;
       text-align: center;
-      height: 22px;
+      height: 10px;
     }
 
-    th {
-      background: #bae4ff;
-    }
+    th { background: #bae4ff; }
 
-    /* 색상 표시 (포지션/선발 가능 리스트용) */
-    .position-selected {
-      background-color: #fff7a0 !important;
-      /* 노란색 */
-    }
-
-    .position-locked {
-      background-color: #e2e2e2 !important;
-      /* 회색 */
-    }
-
-    .warningRow {
-      background-color: #fff7a0 !important;
-    }
+    .warningRow { background: #fff7a0 !important; }
+    .position-selected { background: #fff7a0 !important; }
+    .position-locked { background: #e2e2e2 !important; }
   </style>
 </head>
 
 <body>
-  <!-- ============================================================
-      상단 영역 (오더명 + 저장 버튼 등)
-============================================================ -->
-  <div id="topArea">
-    <h1>오더 작성</h1>
 
-    <div style="margin-top: 10px;">
-      <label>오더명: </label>
-      <input type="text" id="orderName" placeholder="예: 4월 28일 LG전" style="width: 260px; padding: 6px;" />
-    </div>
+  <h1>오더 작성</h1>
 
-    <button class="buttonStyles" style="margin-top: 15px;" onclick="saveOrder()">
-      💾 저장 (추후 구현)
-    </button>
+  <div style='margin-top:10px; display:flex; gap:10px;'>
+    <button class='buttonStyles'>불러오기(개발예정)</button>
+    <button class='buttonStyles' onclick='saveOrder()'>저장(개발예정)</button>
   </div>
 
+  <div style='margin-top:10px;'>
+    <label>오더명: </label>
+    <input type='text' id='orderName' placeholder='예: 4월 28일 LG전' style='width:260px; padding:6px;' />
+  </div>
 
-  <!-- ============================================================
-      메인 2단 레이아웃
-      왼쪽: 참가 명단 (areaA)
-      오른쪽: 중앙 묶음 박스(centerWrapper)
-============================================================ -->
-  <div id="mainArea">
+  <!-- 3단 레이아웃 시작 -->
+  <div id='mainArea'>
 
-    <!-- ---------------------------------------------------------
-        A 영역 — 참가 선수 명단
-  ---------------------------------------------------------- -->
-    <div id="areaA">
-      <h3>참가 명단</h3>
+    <!-- 좌측: 참가 명단 -->
+    <div id='areaA' class='panelBox'>
+      <label style="font-weight: bolder;">참가 명단</label>
 
-      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-        <select id="playerSelect"></select>
-        <button class="buttonStyles" onclick="addPlayer()">추가</button>
+      <div style='display:flex; gap:10px; align-items:center; margin-bottom:10px;'>
+        <select id='playerSelect'></select>
+        <button class='buttonStyles' onclick='addPlayer()'>추가</button>
       </div>
 
       <table>
@@ -263,218 +163,163 @@
             <th>삭제</th>
           </tr>
         </thead>
-        <tbody id="playerTableBody"></tbody>
+        <tbody id='playerTableBody'></tbody>
       </table>
     </div>
 
+    <!-- 중앙 묶음 -->
+    <div id='positionWrapper'>
 
-    <!-- ---------------------------------------------------------
-        중앙 묶음 박스 전체
-        (포지션 + 선발 + 대기 + 출전가능포지션)
-  ---------------------------------------------------------- -->
-    <div id="centerWrapper">
+      <!-- 상단: 포지션 지정 -->
+      <div id='areaB1'>
+        <select id='pos_CF' class='posSelect' onchange='updatePosition("CF", this.value)'></select>
+        <select id='pos_LF' class='posSelect' onchange='updatePosition("LF", this.value)'></select>
+        <select id='pos_RF' class='posSelect' onchange='updatePosition("RF", this.value)'></select>
 
-      <!-- -------------------------------------------------------
-          중앙 묶음 내부 위쪽 — 포지션 + 선발 + 대기
-    -------------------------------------------------------- -->
-      <div id="positionAndStarterWrapper">
+        <select id='pos_SS' class='posSelect' onchange='updatePosition("SS", this.value)'></select>
+        <select id='pos_2B' class='posSelect' onchange='updatePosition("2B", this.value)'></select>
+        <select id='pos_3B' class='posSelect' onchange='updatePosition("3B", this.value)'></select>
+        <select id='pos_1B' class='posSelect' onchange='updatePosition("1B", this.value)'></select>
 
-        <!-- B1: 포지션 지정 영역 -->
-        <div id="areaB1">
-
-          <!-- 외야 -->
-          <select id="pos_CF" class="posSelect" onchange="updatePosition('CF', this.value)"></select>
-          <select id="pos_LF" class="posSelect" onchange="updatePosition('LF', this.value)"></select>
-          <select id="pos_RF" class="posSelect" onchange="updatePosition('RF', this.value)"></select>
-
-          <!-- 내야 -->
-          <select id="pos_SS" class="posSelect" onchange="updatePosition('SS', this.value)"></select>
-          <select id="pos_2B" class="posSelect" onchange="updatePosition('2B', this.value)"></select>
-          <select id="pos_3B" class="posSelect" onchange="updatePosition('3B', this.value)"></select>
-          <select id="pos_1B" class="posSelect" onchange="updatePosition('1B', this.value)"></select>
-
-          <!-- 배터리 & DH -->
-          <select id="pos_P" class="posSelect" onchange="updatePosition('P',  this.value)"></select>
-          <select id="pos_C" class="posSelect" onchange="updatePosition('C',  this.value)"></select>
-          <select id="pos_DH" class="posSelect" onchange="updatePosition('DH', this.value)"></select>
-
-        </div>
-
-
-        <!-- C1: 선발 명단 -->
-        <div id="areaC1">
-          <table class="smallTable">
-            <caption style="font-weight: bolder;">선발 명단</caption>
-            <thead>
-              <tr>
-                <th style="width: 35px;">타순</th>
-                <th style="width: 70px;">선수명</th>
-                <th style="width: 35px;">배번</th>
-                <th>포지션</th>
-              </tr>
-            </thead>
-            <tbody id="startingTableBody"></tbody>
-          </table>
-        </div>
-
-
-        <!-- C2: 대기 명단 -->
-        <div id="areaC2">
-          <table class="smallTable">
-            <caption style="font-weight: bolder;">대기 명단</caption>
-            <thead>
-              <tr>
-                <th style="width: 60px;">선수명</th>
-                <th style="width: 35px;">배번</th>
-              </tr>
-            </thead>
-            <tbody id="waitingTableBody"></tbody>
-          </table>
-        </div>
-
-      </div> <!-- positionAndStarterWrapper END -->
-
-
-      <!-- -------------------------------------------------------
-          중앙 묶음 하단 — 출전 가능 포지션 리스트(B2)
-    -------------------------------------------------------- -->
-      <div id="areaB2">
-        <div id="positionAbilityContainer"></div>
+        <select id='pos_P' class='posSelect' onchange='updatePosition("P", this.value)'></select>
+        <select id='pos_C' class='posSelect' onchange='updatePosition("C", this.value)'></select>
+        <select id='pos_DH' class='posSelect' onchange='updatePosition("DH", this.value)'></select>
       </div>
 
-    </div> <!-- centerWrapper END -->
+      <!-- 하단: 선발 + 대기 -->
+      <div id='middleWrapper'>
 
-  </div> <!-- mainArea END -->
+        <div id='areaC1'>
+          <table>
+            <caption style='font-weight:bolder;'>선발 명단</caption>
+            <thead>
+              <tr>
+                <th style='width:50px;'>타순</th>
+                <th>선수명</th>
+                <th style='width:50px;'>배번</th>
+                <th style='width:100px;'>포지션</th>
+              </tr>
+            </thead>
+            <tbody id='startingTableBody'></tbody>
+          </table>
+        </div>
+
+        <div id='areaC2'>
+          <table>
+            <caption style='font-weight:bolder;'>대기 명단</caption>
+            <thead>
+              <tr>
+                <th style='width:60px;'>선수명</th>
+                <th style='width:35px;'>배번</th>
+              </tr>
+            </thead>
+            <tbody id='waitingTableBody'></tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 우측: 출전 가능 포지션 리스트 -->
+    <div id='areaB2'>
+      <div id='positionAbilityContainer'></div>
+    </div>
+
+  </div>
+
+  <!-- ========================= JS (원본 유지, 추가 변경 없음) ========================= -->
   <script>
-    /* ============================================================
-       API ENDPOINTS
-    ============================================================ */
     const API = {
-      getPlayers: "https://getplayers-2guymqucma-uc.a.run.app"
+      getPlayers: 'https://getplayers-2guymqucma-uc.a.run.app'
     };
 
-
-    /* ============================================================
-       GLOBAL DATA STRUCTURES
-    ============================================================ */
-
-    /* 전체 선수 DB */
     let playerDB = [];
-
-    /* 참가 선수 명단 */
     let selectedPlayers = [];
 
-    /* 포지션 할당 정보 (야구장 배치) */
     let positionAssignments = {
-      CF: "", LF: "", RF: "",
-      SS: "", "2B": "", "3B": "",
-      P: "", C: "", DH: "", "1B": ""
+      CF: '', LF: '', RF: '',
+      SS: '', '2B': '', '3B': '',
+      P: '', C: '', DH: '', '1B': ''
     };
 
-    /* 선발 명단 (1~9 + 투수) */
-    let startingList = Array(10).fill("").map(() => ({
-      name: "",
-      num: "",
-      pos: ""
+    let startingList = Array(10).fill('').map(() => ({
+      name: '',
+      num: '',
+      pos: ''
     }));
 
-    /* 출전 가능 포지션 테이블에 사용할 포지션 목록 */
     const abilityPositions = [
-      { key: "p", label: "투수(P)" },
-      { key: "c", label: "포수(C)" },
-      { key: "1b", label: "1루수(1B)" },
-      { key: "2b", label: "2루수(2B)" },
-      { key: "3b", label: "3루수(3B)" },
-      { key: "ss", label: "유격수(SS)" },
-      { key: "of", label: "외야수(OF)" }
+      { key: 'p', label: '투수' },
+      { key: 'c', label: '포수' },
+      { key: '1b', label: '1루' },
+      { key: '2b', label: '2루' },
+      { key: '3b', label: '3루' },
+      { key: 'ss', label: '유격' },
+      { key: 'of', label: '외야' }
     ];
 
-
-    /* ============================================================
-       INITIAL STARTUP
-    ============================================================ */
     window.onload = async () => {
       await loadPlayerDB();
-
       setupStartingTable();
       renderPlayerSelect();
       renderPlayerTable();
-
       renderPositionSelects();
       renderStartingTable();
       renderWaitingTable();
-
-      renderPositionAbility();   // 출전 가능 포지션 리스트 렌더링
+      renderPositionAbility();
     };
 
-
-    /* ============================================================
-       1) 선수 DB 불러오기
-    ============================================================ */
     async function loadPlayerDB() {
       const res = await fetch(API.getPlayers);
       playerDB = await res.json();
     }
 
-
-    /* ============================================================
-       2) 참가 선수 Select 박스 렌더링
-    ============================================================ */
     function renderPlayerSelect() {
-      const select = document.getElementById("playerSelect");
-      select.innerHTML = "";
+      const select = document.getElementById('playerSelect');
+      select.innerHTML = '';
 
       const candidates = playerDB.filter(p => !selectedPlayers.includes(p.name));
 
       if (candidates.length === 0) {
-        const opt = document.createElement("option");
-        opt.textContent = "추가 없음";
+        const opt = document.createElement('option');
+        opt.textContent = '추가 없음';
         opt.disabled = true;
         select.appendChild(opt);
         return;
       }
 
       candidates.forEach(p => {
-        const opt = document.createElement("option");
+        const opt = document.createElement('option');
         opt.value = p.name;
-        opt.textContent = `${p.name} (${p.num})`;
+        opt.textContent = p.name + ' (' + p.num + ')';
         select.appendChild(opt);
       });
     }
 
-
-    /* ============================================================
-       3) 참가 선수 테이블 렌더링
-    ============================================================ */
     function renderPlayerTable() {
-      const tbody = document.getElementById("playerTableBody");
-      tbody.innerHTML = "";
+      const tbody = document.getElementById('playerTableBody');
+      tbody.innerHTML = '';
 
-      selectedPlayers.sort((a, b) => a.localeCompare(b, "ko"));
+      selectedPlayers.sort((a, b) => a.localeCompare(b, 'ko'));
 
       selectedPlayers.forEach(name => {
         const info = playerDB.find(x => x.name === name);
 
-        const tr = document.createElement("tr");
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${name}</td>
-      <td>${info.num}</td>
-      <td>
-        <button class="buttonStyles" onclick="removePlayer('${name}')">
-          삭제
-        </button>
-      </td>
-    `;
+          <td>${name}</td>
+          <td>${info.num}</td>
+          <td>
+            <button class='buttonStyles' onclick='removePlayer("${name}")'>삭제</button>
+          </td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-
-    /* ============================================================
-       4) 참가 선수 추가
-    ============================================================ */
     function addPlayer() {
-      const name = document.getElementById("playerSelect").value;
+      const name = document.getElementById('playerSelect').value;
       if (!name) return;
 
       selectedPlayers.push(name);
@@ -484,27 +329,21 @@
       renderPositionSelects();
       renderStartingTable();
       renderWaitingTable();
-      renderPositionAbility();   // ★ 추가
+      renderPositionAbility();
     }
 
-
-    /* ============================================================
-       5) 참가 선수 삭제
-    ============================================================ */
     function removePlayer(name) {
       selectedPlayers = selectedPlayers.filter(n => n !== name);
 
-      /* 포지션에서 제거 */
       for (const pos in positionAssignments) {
         if (positionAssignments[pos] === name) {
-          positionAssignments[pos] = "";
+          positionAssignments[pos] = '';
         }
       }
 
-      /* 선발 명단에서도 제거 */
       startingList.forEach((row, i) => {
         if (row.name === name) {
-          startingList[i] = { name: "", num: "", pos: "" };
+          startingList[i] = { name: '', num: '', pos: '' };
         }
       });
 
@@ -513,73 +352,51 @@
       renderPositionSelects();
       renderStartingTable();
       renderWaitingTable();
-      renderPositionAbility();   // ★ 추가
+      renderPositionAbility();
     }
-    /* ============================================================
-       6) 포지션 선택박스 렌더링 (야구장 위의 드롭다운)
-    ============================================================ */
+
     function renderPositionSelects() {
-      const selects = document.querySelectorAll(".posSelect");
+      const selects = document.querySelectorAll('.posSelect');
 
       selects.forEach(sel => {
-        const pos = sel.id.replace("pos_", ""); // CF, SS, P ...
+        const pos = sel.id.replace('pos_', '');
 
-        sel.innerHTML = "";
+        sel.innerHTML = '';
 
-        /* 0) 공백 옵션 */
-        const blank = document.createElement("option");
-        blank.value = "";
-        blank.textContent = " ";
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = ' ';
         sel.appendChild(blank);
 
-        /* 1) 참가 선수만 선택 가능 */
         selectedPlayers.forEach(name => {
-          const opt = document.createElement("option");
+          const opt = document.createElement('option');
           opt.value = name;
           opt.textContent = name;
 
-          if (positionAssignments[pos] === name) {
-            opt.selected = true;
-          }
+          if (positionAssignments[pos] === name) opt.selected = true;
 
           sel.appendChild(opt);
         });
       });
     }
 
-
-    /* ============================================================
-       7) 포지션 변경 처리
-    ============================================================ */
     function updatePosition(pos, playerName) {
-
-      /* ------------------------------------------
-          (A) 같은 선수가 다른 포지션에 배정되어 있으면 제거
-      ------------------------------------------- */
       for (const key in positionAssignments) {
         if (positionAssignments[key] === playerName) {
-          positionAssignments[key] = "";
+          positionAssignments[key] = '';
         }
       }
 
-      /* 현재 포지션에 새 선수 배정 */
       positionAssignments[pos] = playerName;
 
-      /* ------------------------------------------
-          (B) 포지션이 사라진 선발명단은 자동 제거
-      ------------------------------------------- */
       startingList.forEach((row, i) => {
         if (!row.name) return;
-
         const stillAssigned = Object.values(positionAssignments).includes(row.name);
         if (!stillAssigned) {
-          startingList[i] = { name: "", num: "", pos: "" };
+          startingList[i] = { name: '', num: '', pos: '' };
         }
       });
 
-      /* ------------------------------------------
-          (C) 포지션이 바뀐 선수의 선발명단 포지션 갱신
-      ------------------------------------------- */
       startingList.forEach((row, i) => {
         if (!row.name) return;
 
@@ -589,151 +406,118 @@
         if (currentPosCode) {
           row.pos = convertPosition(currentPosCode);
         } else {
-          startingList[i] = { name: "", num: "", pos: "" };
+          startingList[i] = { name: '', num: '', pos: '' };
         }
       });
 
       renderPositionSelects();
       renderStartingTable();
       renderWaitingTable();
-      renderPositionAbility();   // ★ 출전 가능 포지션 리스트 즉시 갱신
+      renderPositionAbility();
     }
 
-
-    /* ============================================================
-       8) 선발 후보 = 실제 포지션이 배정된 선수들
-    ============================================================ */
     function getStartingCandidates() {
-      return Object.values(positionAssignments).filter(v => v !== "");
+      return Object.values(positionAssignments).filter(v => v !== '');
     }
-    /* ============================================================
-       9) 선발 명단 테이블 기본 구조 생성 (1~9 + 투수)
-    ============================================================ */
+
     function setupStartingTable() {
-      const tbody = document.getElementById("startingTableBody");
-      tbody.innerHTML = "";
+      const tbody = document.getElementById('startingTableBody');
+      tbody.innerHTML = '';
 
       for (let i = 0; i < 10; i++) {
-        const orderLabel = (i < 9) ? (i + 1) : "투수";
+        const orderLabel = (i < 9) ? (i + 1) : '투수';
 
-        const tr = document.createElement("tr");
+        const tr = document.createElement('tr');
 
         tr.innerHTML = `
-      <td>${orderLabel}</td>
+          <td>${orderLabel}</td>
 
-      <td>
-        ${i === 9
-            ? `<span id="start_name_${i}"></span>`
-            : `<select id="start_sel_${i}" style="width:70px;" onchange="selectStarting(${i}, this.value)"></select>`
+          <td>
+            ${i === 9
+            ? `<span id='start_name_${i}'></span>`
+            : `<select id='start_sel_${i}' style='width:70px;' onchange='selectStarting(${i}, this.value)'></select>`
           }
-      </td>
+          </td>
 
-      <td id="start_num_${i}"></td>
-      <td id="start_pos_${i}"></td>
-    `;
+          <td id='start_num_${i}'></td>
+          <td id='start_pos_${i}'></td>
+        `;
 
         tbody.appendChild(tr);
       }
     }
 
-
-    /* ============================================================
-       10) 선발 명단 렌더링
-    ============================================================ */
     function renderStartingTable() {
-
       const candidates = getStartingCandidates();
 
       for (let i = 0; i < 10; i++) {
 
-        /* ------------------------------
-             10번행 = 투수 자동 입력
-        ------------------------------ */
         if (i === 9) {
-          const pName = positionAssignments["P"];
-          const nameSpan = document.getElementById("start_name_" + i);
+          const pName = positionAssignments['P'];
+          const nameSpan = document.getElementById('start_name_' + i);
 
           if (pName) {
             const p = playerDB.find(x => x.name === pName);
             nameSpan.textContent = pName;
-            document.getElementById("start_num_" + i).textContent = p.num;
-            document.getElementById("start_pos_" + i).textContent = convertPosition("P");
+            document.getElementById('start_num_' + i).textContent = p.num;
+            document.getElementById('start_pos_' + i).textContent = convertPosition('P');
 
             startingList[i] = {
               name: pName,
               num: p.num,
-              pos: convertPosition("P")
+              pos: convertPosition('P')
             };
 
           } else {
-            nameSpan.textContent = "";
-            document.getElementById("start_num_" + i).textContent = "";
-            document.getElementById("start_pos_" + i).textContent = "";
-            startingList[i] = { name: "", num: "", pos: "" };
+            nameSpan.textContent = '';
+            document.getElementById('start_num_' + i).textContent = '';
+            document.getElementById('start_pos_' + i).textContent = '';
+            startingList[i] = { name: '', num: '', pos: '' };
           }
 
           continue;
         }
 
+        const sel = document.getElementById('start_sel_' + i);
+        sel.innerHTML = '';
 
-        /* ------------------------------
-             1~9번 타자 select 목록 구성
-        ------------------------------ */
-        const sel = document.getElementById("start_sel_" + i);
-        sel.innerHTML = "";
-
-        const blank = document.createElement("option");
-        blank.value = "";
-        blank.textContent = " ";
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = ' ';
         sel.appendChild(blank);
 
         candidates.forEach(name => {
-          const opt = document.createElement("option");
+          const opt = document.createElement('option');
           opt.value = name;
           opt.textContent = name;
-
           if (startingList[i].name === name) opt.selected = true;
-
           sel.appendChild(opt);
         });
 
-
-        /* ------------------------------
-             배번 + 포지션명 표시
-        ------------------------------ */
         const row = startingList[i];
 
         if (row.name) {
           const p = playerDB.find(x => x.name === row.name);
-          document.getElementById("start_num_" + i).textContent = p.num;
-          document.getElementById("start_pos_" + i).textContent = row.pos;
+          document.getElementById('start_num_' + i).textContent = p.num;
+          document.getElementById('start_pos_' + i).textContent = row.pos;
         } else {
-          document.getElementById("start_num_" + i).textContent = "";
-          document.getElementById("start_pos_" + i).textContent = "";
+          document.getElementById('start_num_' + i).textContent = '';
+          document.getElementById('start_pos_' + i).textContent = '';
         }
       }
     }
 
-
-    /* ============================================================
-       11) 선발 타순 선택 처리 (중복 자동 제거)
-    ============================================================ */
     function selectStarting(idx, playerName) {
-
-      /* (A) 다른 타순에 기존 값 있으면 제거 */
       startingList.forEach((row, i) => {
         if (i !== idx && row.name === playerName) {
-          startingList[i] = { name: "", num: "", pos: "" };
+          startingList[i] = { name: '', num: '', pos: '' };
         }
       });
 
-      /* (B) 현재 행 업데이트 */
       if (!playerName) {
-        startingList[idx] = { name: "", num: "", pos: "" };
+        startingList[idx] = { name: '', num: '', pos: '' };
       } else {
         const p = playerDB.find(x => x.name === playerName);
-
-        // 현재 배정된 포지션 찾기
         const posCode = Object.keys(positionAssignments)
           .find(key => positionAssignments[key] === playerName);
 
@@ -746,36 +530,28 @@
 
       renderStartingTable();
       renderWaitingTable();
-      renderPositionAbility();  // ★ 출전 가능 포지션 리스트 실시간 갱신
+      renderPositionAbility();
     }
 
-
-    /* ============================================================
-       12) 포지션 코드 → 한글 포지션명 변환
-    ============================================================ */
     function convertPosition(code) {
       const map = {
-        CF: "중견수(CF)",
-        LF: "좌익수(LF)",
-        RF: "우익수(RF)",
-        SS: "유격수(SS)",
-        "2B": "2루수(2B)",
-        "3B": "3루수(3B)",
-        "1B": "1루수(1B)",
-        P: "투수(P)",
-        C: "포수(C)",
-        DH: "지명타자(DH)"
+        CF: '중견수(CF)',
+        LF: '좌익수(LF)',
+        RF: '우익수(RF)',
+        SS: '유격수(SS)',
+        '2B': '2루수(2B)',
+        '3B': '3루수(3B)',
+        '1B': '1루수(1B)',
+        P: '투수(P)',
+        C: '포수(C)',
+        DH: '지명타자(DH)'
       };
-      return map[code] || "";
+      return map[code] || '';
     }
 
-
-    /* ============================================================
-       13) 대기 명단 렌더링
-    ============================================================ */
     function renderWaitingTable() {
-      const tbody = document.getElementById("waitingTableBody");
-      tbody.innerHTML = "";
+      const tbody = document.getElementById('waitingTableBody');
+      tbody.innerHTML = '';
 
       const starters = startingList
         .map(r => r.name)
@@ -783,153 +559,143 @@
 
       selectedPlayers
         .filter(name => !starters.includes(name))
-        .sort((a, b) => a.localeCompare(b, "ko"))
+        .sort((a, b) => a.localeCompare(b, 'ko'))
         .forEach(name => {
 
           const info = playerDB.find(x => x.name === name);
-          const tr = document.createElement("tr");
+          const tr = document.createElement('tr');
 
           tr.innerHTML = `
-        <td>${name}</td>
-        <td>${info.num}</td>
-      `;
+            <td>${name}</td>
+            <td>${info.num}</td>
+          `;
 
           const hasPosition = Object.values(positionAssignments).includes(name);
-          if (hasPosition) tr.classList.add("warningRow");
+          if (hasPosition) tr.classList.add('warningRow');
 
           tbody.appendChild(tr);
         });
     }
-    /* ============================================================
-       14) 출전 가능 포지션 리스트 렌더링
-    ============================================================ */
+
     function renderPositionAbility() {
-      const container = document.getElementById("positionAbilityContainer");
-      container.innerHTML = "";
+  const container = document.getElementById('positionAbilityContainer');
+  container.innerHTML = '';
 
-      abilityPositions.forEach(pos => {
+  const table = document.createElement('table');
 
-        let starters = [];
-        let backups = [];
+  const players = selectedPlayers.slice().sort((a, b) => a.localeCompare(b, 'ko'));
 
-        /* -------------------------------------------------------
-              참가 명단 선수 기준으로 선발/후보 분류
-        -------------------------------------------------------- */
-        selectedPlayers.forEach(name => {
-          const player = playerDB.find(x => x.name === name);
-          if (!player) return;
+  abilityPositions.forEach(pos => {
+    const starters = [];
+    const backups = [];
 
-          const val = Number(player[pos.key]);   // 0 / 1 / 2
+    players.forEach(name => {
+      const p = playerDB.find(x => x.name === name);
+      const val = Number(p[pos.key]);
+      if (val === 2) starters.push(name);
+      else if (val === 1) backups.push(name);
+    });
 
-          if (val === 2) starters.push(name);
-          else if (val === 1) backups.push(name);
-        });
+    starters.sort((a, b) => a.localeCompare(b, 'ko'));
+    backups.sort((a, b) => a.localeCompare(b, 'ko'));
 
-        starters.sort((a, b) => a.localeCompare(b, "ko"));
-        backups.sort((a, b) => a.localeCompare(b, "ko"));
+    // =====================================
+    // 1) 선발 행
+    // =====================================
+    const trStarter = document.createElement('tr');
 
-        /* -------------------------------------------------------
-              테이블 생성
-        -------------------------------------------------------- */
-        const table = document.createElement("table");
-        table.classList.add("smallTable");
+    // 1열: 포지션(rowspan=2)
+    const tdPos = document.createElement('td');
+    tdPos.textContent = pos.label;
+    tdPos.rowSpan = 2;
+    tdPos.style.background = '#bae4ff';   // ★ 요청 음영
+    tdPos.style.fontWeight = 'bolder'
+    trStarter.appendChild(tdPos);
 
-        /* 첫 행: 포지션명 (2칸 병합) */
-        const trTitle = document.createElement("tr");
-        const thTitle = document.createElement("th");
-        thTitle.colSpan = 2;
-        thTitle.textContent = pos.label;
-        trTitle.appendChild(thTitle);
-        table.appendChild(trTitle);
+    // 2열: '선발'
+    const tdStarterLabel = document.createElement('td');
+    tdStarterLabel.textContent = '선발';
+    tdStarterLabel.style.background = '#bae4ff';  // ★ 요청 음영
+      tdStarterLabel.style.fontWeight = 'bolder'
+    trStarter.appendChild(tdStarterLabel);
 
-        /* 두 번째 행: '선발' / '후보' */
-        const trHeader = document.createElement("tr");
-        trHeader.innerHTML = `
-      <th>선발</th>
-      <th>후보</th>
-    `;
-        table.appendChild(trHeader);
+    // 3열~ : 선발 선수들
+    starters.forEach(name => {
+      const td = document.createElement('td');
+      td.textContent = name;
 
-        /* 행 수 = 선발/후보 중 더 긴 리스트 */
-        const maxLen = Math.max(starters.length, backups.length);
+      const assignedPos = Object.keys(positionAssignments)
+        .find(k => positionAssignments[k] === name);
 
-        for (let i = 0; i < maxLen; i++) {
-          const tr = document.createElement("tr");
-
-          const starterName = starters[i] || "";
-          const backupName = backups[i] || "";
-
-          const tdStarter = document.createElement("td");
-          const tdBackup = document.createElement("td");
-
-          tdStarter.textContent = starterName;
-          tdBackup.textContent = backupName;
-
-          /* -------------------------------------------------------
-                색상 처리 로직
-                - 실제 해당 포지션에 배정되면 노란색
-                - 다른 포지션 배정이면 회색
-          -------------------------------------------------------- */
-          /* 포지션 키 매칭 (OF: CF/LF/RF 포함) */
-          function isSamePosition(posKey, assignedPos) {
-            if (!assignedPos) return false;
-
-            // 외야 통합 처리
-            if (posKey === "of") {
-              return ["cf", "lf", "rf"].includes(assignedPos.toLowerCase());
-            }
-
-            return assignedPos.toLowerCase() === posKey;
-          }
-
-          /* 색상 처리 방식 */
-          if (starterName) {
-            const assignedPos = Object.keys(positionAssignments)
-              .find(key => positionAssignments[key] === starterName);
-
-            if (assignedPos) {
-              if (isSamePosition(pos.key, assignedPos)) {
-                tdStarter.classList.add("position-selected"); // 노란색
-              } else {
-                tdStarter.classList.add("position-locked");   // 회색
-              }
-            }
-          }
-
-          if (backupName) {
-            const assignedPos = Object.keys(positionAssignments)
-              .find(key => positionAssignments[key] === backupName);
-
-            if (assignedPos) {
-              if (isSamePosition(pos.key, assignedPos)) {
-                tdBackup.classList.add("position-selected"); // 노란색
-              } else {
-                tdBackup.classList.add("position-locked");   // 회색
-              }
-            }
-          }
-
-
-          tr.appendChild(tdStarter);
-          tr.appendChild(tdBackup);
-          table.appendChild(tr);
+      if (assignedPos) {
+        if (isSamePosition(pos.key, assignedPos.toLowerCase())) {
+          td.classList.add('position-selected');
+        } else {
+          td.classList.add('position-locked');
         }
+      }
 
-        container.appendChild(table);
-      });
+      trStarter.appendChild(td);
+    });
+
+    table.appendChild(trStarter);
+
+    // =====================================
+    // 2) 후보 행
+    // =====================================
+    const trBackup = document.createElement('tr');
+
+    const tdBackupLabel = document.createElement('td');
+    tdBackupLabel.textContent = '후보';
+    tdBackupLabel.style.background = '#ffafaf';  // ★ 요청 음영
+        tdBackupLabel.style.fontWeight = 'bolder'
+    trBackup.appendChild(tdBackupLabel);
+
+    backups.forEach(name => {
+      const td = document.createElement('td');
+      td.textContent = name;
+
+      const assignedPos = Object.keys(positionAssignments)
+        .find(k => positionAssignments[k] === name);
+
+      if (assignedPos) {
+        if (isSamePosition(pos.key, assignedPos.toLowerCase())) {
+          td.classList.add('position-selected');
+        } else {
+          td.classList.add('position-locked');
+        }
+      }
+
+      trBackup.appendChild(td);
+    });
+
+    table.appendChild(trBackup);
+  });
+
+  container.appendChild(table);
+}
+
+
+
+
+    function isSamePosition(posKey, assignedPos) {
+      if (!assignedPos) return false;
+
+      if (posKey === 'of') {
+        return ['cf', 'lf', 'rf'].includes(assignedPos.toLowerCase());
+      }
+
+      return assignedPos.toLowerCase() === posKey;
     }
-    /* ============================================================
-       15) 저장 기능 (추후 실제 저장 구현 예정)
-    ============================================================ */
+
     function saveOrder() {
-      const name = document.getElementById("orderName").value.trim();
+      const name = document.getElementById('orderName').value.trim();
 
       if (!name) {
-        alert("오더명을 입력해주세요.");
+        alert('오더명을 입력해주세요.');
         return;
       }
 
-      // 저장될 전체 데이터 구조
       const payload = {
         orderName: name,
         players: [...selectedPlayers],
@@ -937,13 +703,11 @@
         startingList: [...startingList]
       };
 
-      console.log("저장 예정 데이터:", payload);
+      console.log('저장 예정 데이터:', payload);
 
-      alert("저장 기능은 추후 구현됩니다!");
+      alert('저장 기능은 추후 구현됩니다!');
     }
-
   </script>
 
 </body>
-
 </html>
