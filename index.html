@@ -1,63 +1,191 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
-  <title>삼성 헌터스</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚾ 삼성 헌터스 포지션 조회 ⚾</title>
+
   <style>
+    body {
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 24px;
+    }
+
+    /* 관리자 버튼 영역 */
     #adminButtons {
       position: fixed;
       top: 10px;
       right: 10px;
       display: flex;
+      flex-direction: column;
       gap: 10px;
+      z-index: 50;
+    }
+
+    .adminBtn {
+      padding: 10px 14px;
+      font-size: 15px;
+      background: #333;
+      color: white;
+      border-radius: 8px;
+      min-width: 130px;
+    }
+
+    /* 테이블 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    th,
+    td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    th {
+      background: #f0f0f0;
+      white-space: normal;
+      word-break: keep-all;
+    }
+
+    /* 모바일 UI */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+      }
+
+      th,
+      td {
+        font-size: 13px;
+        padding: 6px;
+      }
+
+      .adminBtn {
+        font-size: 14px;
+        padding: 8px 10px;
+        min-width: 110px;
+      }
     }
   </style>
 </head>
+
 <body>
+
+  <!-- 우측 상단 관리자 메뉴 -->
   <div id="adminButtons">
-    <button onclick="goAdmin()">포지션 관리</button>
-    <button onclick="changePassword()">비밀번호 변경</button>
+    <button class="adminBtn" onclick="goAdmin()">포지션 관리</button>
+    <button class="adminBtn" onclick="changePassword()">비밀번호 변경</button>
   </div>
 
-  <h1>삼성 헌터스</h1>
+  <h1>⚾ 삼성 헌터스 선수 포지션 ⚾</h1>
+
+  <!-- 테이블 -->
+  <table id="playerTable">
+    <thead>
+      <tr>
+        <th>이름</th>
+        <th>배번</th>
+        <th>투수</th>
+        <th>포수</th>
+        <th>1루수</th>
+        <th>2루수</th>
+        <th>3루수</th>
+        <th>유격수</th>
+        <th>외야수</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    const API_BASE = "https://us-central1-hunters-f2581.cloudfunctions.net";
+    // Cloud Run API URL
+    const API = {
+      getPlayers: "https://getplayers-2guymqucma-uc.a.run.app",
+      check: "https://checkpassword-2guymqucma-uc.a.run.app",
+      updatePw: "https://updatepassword-2guymqucma-uc.a.run.app"
+    };
 
+    const LABELS = {
+      "0": "🔴 불가",
+      "1": "🟡 후보",
+      "2": "🟢 선발"
+    };
+
+
+    // 메인 화면 → 관리자 페이지 이동
     function goAdmin() {
       window.location.href = "admin.html";
     }
 
+    // 비밀번호 변경 요청
     async function changePassword() {
       const oldPw = prompt("현재 비밀번호를 입력하세요");
       if (!oldPw) return;
 
-      const check = await fetch(`${API_BASE}/checkPassword`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: oldPw })
-      }).then(r => r.json());
-
-      if (check.status !== "성공") {
-        alert("❌ 비밀번호가 틀렸습니다.");
-        return;
-      }
-
-      const newPw = prompt("새 비밀번호를 입력하세요");
+      const newPw = prompt("변경할 새 비밀번호를 입력하세요");
       if (!newPw) return;
 
-      const update = await fetch(`${API_BASE}/updatePassword`, {
+      const res = await fetch(API.updatePw, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
-      }).then(r => r.json());
+        body: JSON.stringify({
+          oldPassword: oldPw,
+          newPassword: newPw
+        })
+      });
 
-      if (update.status === "성공") {
-        alert("✅ 비밀번호 변경 완료!");
-      } else {
-        alert("❌ 변경 실패: " + update.error);
-      }
+      const result = await res.json();
+      if (result.status === "성공") alert("비밀번호가 변경되었습니다!");
+      else alert("❌ 변경 실패: " + result.error);
     }
+
+    // 선수 목록 렌더링
+    function renderPlayerTable(data) {
+      const tbody = document.querySelector("#playerTable tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(player => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML += `<td>${player.name}</td>`;
+        tr.innerHTML += `<td>${player.num}</td>`;
+        tr.innerHTML += `<td>${LABELS[player.p]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player.c]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player["1b"]]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player["2b"]]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player["3b"]]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player.ss]}</td>`;
+        tr.innerHTML += `<td>${LABELS[player.of]}</td>`;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 데이터 불러오기
+    async function loadPlayers() {
+      const res = await fetch(API.getPlayers);
+      const data = await res.json();
+      renderPlayerTable(data);
+    }
+
+    // 초기 실행
+    loadPlayers();
+
   </script>
 </body>
+
 </html>
