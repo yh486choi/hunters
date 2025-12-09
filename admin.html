@@ -3,120 +3,45 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>⚾ 삼성 헌터스 선수 포지션 ⚾</title>
-
   <style>
-    body {
-      font-size: 16px;
-      padding: 10px;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    /* 테이블 공통 */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      display: block;
-      overflow-x: auto;
-      white-space: nowrap;
     }
 
     th,
     td {
       border: 1px solid #999;
-      padding: 8px;
+      padding: 6px;
       text-align: center;
-      font-size: 15px;
     }
 
     th {
       background-color: #f0f0f0;
-      white-space: normal;
-      word-break: keep-all;
     }
 
-    th button {
-      padding: 4px 6px;
-      font-size: 12px;
-    }
-
-    /* 입력 및 셀렉트 */
     input[type="text"],
-    input[type="number"],
+    input[type="number"] {
+      width: 5em;
+    }
+
     select {
-      width: 90px;
-      max-width: 100%;
-      padding: 6px;
-      font-size: 15px;
-      box-sizing: border-box;
+      width: 6em;
     }
 
-    /* 삭제 버튼 */
-    .deleteBtn {
-      padding: 6px 10px;
-      font-size: 16px;
-      border-radius: 6px;
-    }
-
-    /* 상단 컨트롤 버튼 */
     .controls {
-      display: flex;
-      justify-content: flex-start;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .controls button {
-      padding: 10px 14px;
-      font-size: 15px;
-      border-radius: 8px;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    /* 모바일 대응 */
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 20px;
-      }
-
-      th,
-      td {
-        padding: 6px;
-        font-size: 13px;
-      }
-
-      input[type="text"],
-      input[type="number"],
-      select {
-        width: 70px;
-        font-size: 14px;
-      }
-
-      .controls button {
-        padding: 8px 10px;
-        font-size: 14px;
-      }
-
-      .deleteBtn {
-        font-size: 14px;
-      }
+      text-align: right;
+      margin: 10px;
     }
   </style>
 </head>
 
 <body>
-
-  <button onclick="goMain()" style="margin-bottom: 10px;">🏠 홈 화면</button>
+  <div style="text-align: left; margin: 10px;">
+    <button onclick="goMain()">홈 화면</button>
+  </div>
 
   <h1>⚾ 삼성 헌터스 선수 포지션 ⚾</h1>
 
@@ -125,7 +50,7 @@
     <button onclick="loadPlayers()">↩ 원래대로</button>
   </div>
 
-  <!-- 신규 선수 추가 영역 -->
+  <!-- 새로운 선수 추가 영역 -->
   <table>
     <thead>
       <tr>
@@ -141,7 +66,6 @@
         <th>추가</th>
       </tr>
     </thead>
-
     <tbody>
       <tr id="addRow">
         <td><input type="text" id="add_name" /></td>
@@ -153,12 +77,11 @@
         <td><select id="add_3b"></select></td>
         <td><select id="add_ss"></select></td>
         <td><select id="add_of"></select></td>
-        <td><button class="deleteBtn" onclick="addNewPlayer()">➕ 추가</button></td>
+        <td><button onclick="addNewPlayer()">➕ 추가</button></td>
       </tr>
     </tbody>
   </table>
-
-  <!-- 기존 선수 목록 -->
+  <!-- 기존 선수 목록 테이블 -->
   <table id="playerTable">
     <thead>
       <tr>
@@ -178,7 +101,6 @@
   </table>
 
   <script>
-    // Cloud Run 함수 URL (v2)
     const API = {
       check: "https://checkpassword-2guymqucma-uc.a.run.app",
       updatePw: "https://updatepassword-2guymqucma-uc.a.run.app",
@@ -215,7 +137,6 @@
     }
 
     function setSort(field) {
-      // 정렬 필드 재선택 시 순서 토글
       if (currentSortField === field) {
         currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
       } else {
@@ -273,7 +194,6 @@
         tr.innerHTML += `<td><input type="text" value="${player.name}"></td>`;
         tr.innerHTML += `<td><input type="number" value="${player.num}"></td>`;
 
-        // 포지션 select 박스 생성
         POS_FIELDS.forEach(f => {
           const cur = player[f] || "0";
           let html = `<td><select>`;
@@ -284,14 +204,7 @@
           tr.innerHTML += html;
         });
 
-        tr.innerHTML += `
-      <td>
-        <button class="deleteBtn"
-          onclick="this.parentElement.parentElement.remove()">
-          🗑 삭제
-        </button>
-      </td>
-    `;
+        tr.innerHTML += `<td><button onclick="this.parentElement.parentElement.remove()">🗑 삭제</button></td>`;
 
         tbody.appendChild(tr);
       });
@@ -301,23 +214,20 @@
       const name = document.getElementById("add_name").value.trim();
       const num = document.getElementById("add_num").value.trim();
 
-      if (!name || !num)
-        return alert("이름과 배번은 필수입니다.");
+      if (!name || !num) return alert("이름과 배번은 필수입니다.");
 
       // 중복 이름 체크
       const existing = Array.from(
         document.querySelectorAll("#playerTable tbody tr td:first-child input")
       ).map(i => i.value.trim());
 
-      if (existing.includes(name))
-        return alert("이미 존재하는 이름입니다.");
+      if (existing.includes(name)) return alert("이미 존재하는 이름입니다.");
 
       const tr = document.createElement("tr");
 
       tr.innerHTML += `<td><input type="text" value="${name}"></td>`;
       tr.innerHTML += `<td><input type="number" value="${num}"></td>`;
 
-      // 입력으로 가져온 포지션 값
       POS_FIELDS.forEach(pos => {
         const v = document.getElementById(`add_${pos}`).value;
         let html = `<td><select>`;
@@ -328,14 +238,7 @@
         tr.innerHTML += html;
       });
 
-      tr.innerHTML += `
-    <td>
-      <button class="deleteBtn"
-        onclick="this.parentElement.parentElement.remove()">
-        🗑 삭제
-      </button>
-    </td>
-  `;
+      tr.innerHTML += `<td><button onclick="this.parentElement.parentElement.remove()">🗑 삭제</button></td>`;
 
       const tbody = document.querySelector("#playerTable tbody");
       tbody.appendChild(tr);
