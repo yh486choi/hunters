@@ -19,7 +19,7 @@
   --------------------------------------------------- */
   #topArea {
     margin-bottom: 20px;
-    text-align: center;
+    text-align: left;
   }
 
   /* ---------------------------------------------------
@@ -88,6 +88,7 @@
     padding: 3px;
     font-size: 14px;
     border-radius: 8px;
+    text-align: center;
   }
 
   /* 포지션 좌표 (임시값 - 조정 가능) */
@@ -155,15 +156,21 @@
 <div id="topArea">
   <h1>오더 작성</h1>
 
+      <button class="buttonStyles" style="margin-top: 5px;" onclick="saveOrder()">
+    오더 불러오기 (추후 구현)
+  </button>
+
+    <button class="buttonStyles" onclick="saveOrder()">
+    오더 저장 (추후 구현)
+  </button>
+
   <div style="margin-top: 10px;">
     <label>오더명: </label>
     <input type="text" id="orderName" placeholder="예: 4월 28일 LG전"
            style="width: 260px; padding: 6px;" />
   </div>
 
-  <button class="buttonStyles" style="margin-top: 15px;" onclick="saveOrder()">
-    💾 저장 (추후 구현)
-  </button>
+
 </div>
 
 
@@ -524,7 +531,7 @@ function setupStartingTable() {
         ${
           i === 9
           ? `<span id="start_name_${i}"></span>`
-          : `<select id="start_sel_${i}" style="width:70px" onchange="selectStarting(${i}, this.value)"></select>`
+          : `<select id="start_sel_${i}" style="width:70px; text-align: center;" onchange="selectStarting(${i}, this.value)"></select>`
         }
       </td>
 
