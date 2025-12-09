@@ -24,9 +24,14 @@
       background-color: #bae4ff !important;
     }
 
-    input[type="text"],
+    input[type="text"]{
+      width: 4em;
+      text-align: center;
+    }
+
     input[type="number"] {
-      width: 5em;
+      width: 3em;
+      text-align: center;
     }
 
     select {
@@ -34,8 +39,8 @@
     }
 
     .controls {
-      text-align: right;
-      margin: 10px;
+      text-align: left;
+      margin-top: 20px;
     }
 
     table thead th {
@@ -60,14 +65,9 @@
 
   <h1>⚾ 삼성 헌터스 선수 포지션 ⚾</h1>
 
-  <div class="controls">
-    <button class="buttonStyles" onclick="saveAll()">💾 저장</button>
-    <button class="buttonStyles" onclick="loadPlayers()">↩ 원래대로</button>
-  </div>
-
   <!-- 새로운 선수 추가 영역 -->
 
-  <h3>신규 선수 추가</h3>
+  <tr>신규 선수 추가</tr>
   <table>
     <thead>
       <tr>
@@ -99,8 +99,11 @@
     </tbody>
   </table>
   <!-- 기존 선수 목록 테이블 -->
-
-  <h3>선수 목록</h3>
+  <div class="controls">
+    <tr>선수목록</tr>
+    <button class="buttonStyles" onclick="saveAll()">💾 저장</button>
+    <button class="buttonStyles" onclick="loadPlayers()">↩ 원래대로</button>
+  </div>
   <table id="playerTable">
     <thead>
       <tr>

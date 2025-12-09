@@ -1,297 +1,352 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오더 작성</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오더 작성</title>
 
-<link rel="stylesheet" href="buttonStyles.css" />
+  <link rel="stylesheet" href="buttonStyles.css" />
 
-<style>
-  body {
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    display: flex;
-    gap: 30px;
-    align-items: flex-start; /* 왼쪽과 오른쪽 Y축 맞춤 */
-  }
+  <style>
+    body {
+      font-size: 16px;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      /* 왼쪽과 오른쪽 Y축 맞춤 */
+    }
 
-  /* ---------------- 좌측: 참가 선수 명단 ---------------- */
-  #leftArea {
-    width: 320px;
-  }
+    /* ---------------- 좌측: 참가 선수 명단 ---------------- */
+    #leftArea {
+      width: 320px;
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  th, td {
-    border: 1px solid #999;
-    padding: 6px;
-    text-align: center;
-  }
-  th { background: #bae4ff; }
+    table {
+      width: 200px;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
 
-  /* 선수 추가 드롭다운 축소 */
-  #playerSelect {
-    width: 110px;
-    padding: 4px;
-  }
+    th,
+    td {
+      border: 1px solid #999;
+      padding: 6px;
+      text-align: center;
+    }
 
-  /* ---------------- 우측: 야구장 이미지 영역 ---------------- */
-  #fieldArea {
-    width: 500px;
-    height: 400px;
-    background-image: url("field.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    position: relative;
-    flex-shrink: 0; /* 화면이 줄어도 크기 유지 */
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  }
+    th {
+      background: #bae4ff;
+    }
 
-  /* 포지션 select 공통 (작게) */
-  .posSelect {
-    position: absolute;
-    width: 70px;
-    padding: 3px;
-    font-size: 14px;
-  }
+    /* 선수 추가 드롭다운 축소 */
+    #playerSelect {
+      width: 100px;
+      padding: 4px;
+    }
 
-  /* -------- 포지션 위치 (임시값 — 너가 직접 조절하면 됨) -------- */
+    /* ---------------- 우측: 야구장 이미지 영역 ---------------- */
+    #fieldArea {
+      width: 500px;
+      height: 400px;
+      background-image: url("field.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      position: relative;
+      flex-shrink: 0;
+      /* 화면이 줄어도 크기 유지 */
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
 
-  /* 외야 */
-  #pos_CF { top: 15%; left: 50%; transform: translateX(-50%); }
-  #pos_LF { top: 25%; left: 18%; }
-  #pos_RF { top: 25%; right: 18%; }
+    /* 포지션 select 공통 (작게) */
+    .posSelect {
+      position: absolute;
+      width: 70px;
+      padding: 3px;
+      font-size: 14px;
+    }
 
-  /* 내야 */
-  #pos_2B { top: 47%; right: 30%; }
-  #pos_SS { top: 47%; left: 30%;}
+    /* -------- 포지션 위치 (임시값 — 너가 직접 조절하면 됨) -------- */
 
-  #pos_1B { top: 63%; right: 20%; }
-  #pos_3B { top: 63%; left: 20%; }
+    /* 외야 */
+    #pos_CF {
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #pos_LF {
+      top: 25%;
+      left: 18%;
+    }
+
+    #pos_RF {
+      top: 25%;
+      right: 18%;
+    }
+
+    /* 내야 */
+    #pos_2B {
+      top: 47%;
+      right: 30%;
+    }
+
+    #pos_SS {
+      top: 47%;
+      left: 30%;
+    }
+
+    #pos_1B {
+      top: 63%;
+      right: 20%;
+    }
+
+    #pos_3B {
+      top: 63%;
+      left: 20%;
+    }
 
 
-  /* 배터리 */
-  #pos_P  { top: 63%; left: 50%; transform: translateX(-50%); }
-  #pos_C  { top: 80%; left: 50%; transform: translateX(-50%); }
+    /* 배터리 */
+    #pos_P {
+      top: 63%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
 
-  /* DH */
-  #pos_DH { top: 85%; right: 13%; }
+    #pos_C {
+      top: 80%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
 
-</style>
+    /* DH */
+    #pos_DH {
+      top: 85%;
+      right: 13%;
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- ----------------------------------------------------------- -->
-<!-- 왼쪽 UI: 참가 선수 / 추가 / 삭제                           -->
-<!-- ----------------------------------------------------------- -->
-<div id="leftArea">
+  <!-- ----------------------------------------------------------- -->
+  <!-- 왼쪽 UI: 참가 선수 / 추가 / 삭제                           -->
+  <!-- ----------------------------------------------------------- -->
+  <div id="leftArea">
 
-  <h1>오더 작성</h1>
+    <h1>오더 작성</h1>
 
-  <div style="margin-bottom: 15px;">
-    <label>오더명:</label>
-    <input type="text" id="orderName" placeholder="예: 4월 28일 NBL"
-           style="width: 250px; padding: 6px;" />
+    <div style="margin-bottom: 15px;">
+      <label>오더명:</label>
+      <input type="text" id="orderName" placeholder="예: 4월 28일 NBL" style="width: 250px; padding: 6px;" />
+
+      <button class="buttonStyles" onclick="saveOrder()">
+        💾 저장 (추후 구현)
+      </button>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <div>
+        <h3 style="margin-top: 20px;">참가 선수 명단</h3>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="playerSelect"></select>
+          <button class="buttonStyles" onclick="addPlayer()">추가</button>
+        </div>
+
+        <table id="orderTable">
+          <thead>
+            <tr>
+              <th>선수명</th>
+              <th>배번</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+
+
+      <!-- ----------------------------------------------------------- -->
+      <!-- 오른쪽 UI: 이미지 기반 야구장 + 포지션 select             -->
+      <!-- ----------------------------------------------------------- -->
+      <div id="fieldArea">
+
+        <!-- 외야 -->
+        <select id="pos_CF" class="posSelect" onchange="updatePosition('CF', this.value)"></select>
+        <select id="pos_LF" class="posSelect" onchange="updatePosition('LF', this.value)"></select>
+        <select id="pos_RF" class="posSelect" onchange="updatePosition('RF', this.value)"></select>
+
+        <!-- 내야 -->
+        <select id="pos_SS" class="posSelect" onchange="updatePosition('SS', this.value)"></select>
+        <select id="pos_3B" class="posSelect" onchange="updatePosition('3B', this.value)"></select>
+        <select id="pos_2B" class="posSelect" onchange="updatePosition('2B', this.value)"></select>
+
+        <!-- 배터리 -->
+        <select id="pos_P" class="posSelect" onchange="updatePosition('P', this.value)"></select>
+        <select id="pos_C" class="posSelect" onchange="updatePosition('C', this.value)"></select>
+
+        <!-- DH -->
+        <select id="pos_DH" class="posSelect" onchange="updatePosition('DH', this.value)"></select>
+
+        <!-- 1루수 -->
+        <select id="pos_1B" class="posSelect" onchange="updatePosition('1B', this.value)"></select>
+
+      </div>
+    </div>
+
+
   </div>
 
-  <div style="display: flex; gap: 10px; align-items: center;">
-    <select id="playerSelect"></select>
-    <button class="buttonStyles" onclick="addPlayer()">추가</button>
-  </div>
-
-  <h3 style="margin-top: 20px;">참가 선수 명단</h3>
-
-  <table id="orderTable">
-    <thead>
-      <tr>
-        <th>선수명</th>
-        <th>배번</th>
-        <th>삭제</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button class="buttonStyles" style="margin-top: 20px;" onclick="saveOrder()">
-    💾 저장 (추후 구현)
-  </button>
-
-</div>
 
 
-<!-- ----------------------------------------------------------- -->
-<!-- 오른쪽 UI: 이미지 기반 야구장 + 포지션 select             -->
-<!-- ----------------------------------------------------------- -->
-<div id="fieldArea">
-
-  <!-- 외야 -->
-  <select id="pos_CF" class="posSelect" onchange="updatePosition('CF', this.value)"></select>
-  <select id="pos_LF" class="posSelect" onchange="updatePosition('LF', this.value)"></select>
-  <select id="pos_RF" class="posSelect" onchange="updatePosition('RF', this.value)"></select>
-
-  <!-- 내야 -->
-  <select id="pos_SS" class="posSelect" onchange="updatePosition('SS', this.value)"></select>
-  <select id="pos_3B" class="posSelect" onchange="updatePosition('3B', this.value)"></select>
-  <select id="pos_2B" class="posSelect" onchange="updatePosition('2B', this.value)"></select>
-
-  <!-- 배터리 -->
-  <select id="pos_P" class="posSelect" onchange="updatePosition('P', this.value)"></select>
-  <select id="pos_C" class="posSelect" onchange="updatePosition('C', this.value)"></select>
-
-  <!-- DH -->
-  <select id="pos_DH" class="posSelect" onchange="updatePosition('DH', this.value)"></select>
-
-  <!-- 1루수 -->
-  <select id="pos_1B" class="posSelect" onchange="updatePosition('1B', this.value)"></select>
-
-</div>
 
 
-<!-- ----------------------------------------------------------- -->
-<!-- 스크립트: 선수 DB, 추가/삭제, 포지션 배치                  -->
-<!-- ----------------------------------------------------------- -->
-<script>
-const API = {
-  getPlayers: "https://getplayers-2guymqucma-uc.a.run.app"
-};
 
-let playerDB = [];
-let selectedPlayers = [];
+  <!-- ----------------------------------------------------------- -->
+  <!-- 스크립트: 선수 DB, 추가/삭제, 포지션 배치                  -->
+  <!-- ----------------------------------------------------------- -->
+  <script>
+    const API = {
+      getPlayers: "https://getplayers-2guymqucma-uc.a.run.app"
+    };
 
-let positionAssignments = {
-  CF:"", LF:"", RF:"",
-  SS:"", "3B":"", "2B":"",
-  P:"", C:"", DH:"", "1B":""
-};
+    let playerDB = [];
+    let selectedPlayers = [];
 
-window.onload = async () => {
-  await loadPlayerDB();
-  renderPlayerDropdown();
-  renderOrderTable();
-  renderPositionSelects();
-};
+    let positionAssignments = {
+      CF: "", LF: "", RF: "",
+      SS: "", "3B": "", "2B": "",
+      P: "", C: "", DH: "", "1B": ""
+    };
 
-async function loadPlayerDB() {
-  const res = await fetch(API.getPlayers);
-  playerDB = await res.json();
-}
+    window.onload = async () => {
+      await loadPlayerDB();
+      renderPlayerDropdown();
+      renderOrderTable();
+      renderPositionSelects();
+    };
 
-function renderPlayerDropdown() {
-  const select = document.getElementById("playerSelect");
-  select.innerHTML = "";
+    async function loadPlayerDB() {
+      const res = await fetch(API.getPlayers);
+      playerDB = await res.json();
+    }
 
-  const list = playerDB.filter(p => !selectedPlayers.includes(p.name));
+    function renderPlayerDropdown() {
+      const select = document.getElementById("playerSelect");
+      select.innerHTML = "";
 
-  if (list.length === 0) {
-    const opt = document.createElement("option");
-    opt.textContent = "추가할 선수가 없음";
-    opt.disabled = true;
-    select.appendChild(opt);
-    return;
-  }
+      const list = playerDB.filter(p => !selectedPlayers.includes(p.name));
 
-  list.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.name;
-    opt.textContent = `${p.name} (${p.num})`;
-    select.appendChild(opt);
-  });
-}
+      if (list.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "추가할 선수가 없음";
+        opt.disabled = true;
+        select.appendChild(opt);
+        return;
+      }
 
-function renderOrderTable() {
-  const tbody = document.querySelector("#orderTable tbody");
-  tbody.innerHTML = "";
+      list.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.name;
+        opt.textContent = `${p.name} (${p.num})`;
+        select.appendChild(opt);
+      });
+    }
 
-  selectedPlayers.sort((a,b)=>a.localeCompare(b,"ko"));
+    function renderOrderTable() {
+      const tbody = document.querySelector("#orderTable tbody");
+      tbody.innerHTML = "";
 
-  selectedPlayers.forEach(name => {
-    const p = playerDB.find(x => x.name === name);
+      selectedPlayers.sort((a, b) => a.localeCompare(b, "ko"));
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+      selectedPlayers.forEach(name => {
+        const p = playerDB.find(x => x.name === name);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
       <td>${p.name}</td>
       <td>${p.num}</td>
       <td>
         <button class="buttonStyles" onclick="removePlayer('${p.name}')">삭제</button>
       </td>
     `;
-    tbody.appendChild(tr);
-  });
-}
-
-function addPlayer() {
-  const name = document.getElementById("playerSelect").value;
-  if (!name) return;
-
-  selectedPlayers.push(name);
-
-  renderPlayerDropdown();
-  renderOrderTable();
-  renderPositionSelects();
-}
-
-function removePlayer(name) {
-  selectedPlayers = selectedPlayers.filter(n => n !== name);
-
-  for (const pos in positionAssignments) {
-    if (positionAssignments[pos] === name) {
-      positionAssignments[pos] = "";
+        tbody.appendChild(tr);
+      });
     }
-  }
 
-  renderPlayerDropdown();
-  renderOrderTable();
-  renderPositionSelects();
-}
+    function addPlayer() {
+      const name = document.getElementById("playerSelect").value;
+      if (!name) return;
 
-function renderPositionSelects() {
-  const selects = document.querySelectorAll(".posSelect");
+      selectedPlayers.push(name);
 
-  selects.forEach(sel => {
-    const pos = sel.id.replace("pos_","");
-    sel.innerHTML = "";
-
-    const blank = document.createElement("option");
-    blank.value = "";
-    blank.textContent = " ";
-    sel.appendChild(blank);
-
-    selectedPlayers.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-
-      if (positionAssignments[pos] === name) opt.selected = true;
-
-      sel.appendChild(opt);
-    });
-  });
-}
-
-// 포지션 중복 방지 + 자동 재배치
-function updatePosition(pos, playerName) {
-  for (const p in positionAssignments) {
-    if (positionAssignments[p] === playerName) {
-      positionAssignments[p] = "";
+      renderPlayerDropdown();
+      renderOrderTable();
+      renderPositionSelects();
     }
-  }
 
-  positionAssignments[pos] = playerName;
+    function removePlayer(name) {
+      selectedPlayers = selectedPlayers.filter(n => n !== name);
 
-  renderPositionSelects();
-}
+      for (const pos in positionAssignments) {
+        if (positionAssignments[pos] === name) {
+          positionAssignments[pos] = "";
+        }
+      }
 
-function saveOrder() {
-  alert("저장은 추후 구현됩니다!");
-}
-</script>
+      renderPlayerDropdown();
+      renderOrderTable();
+      renderPositionSelects();
+    }
+
+    function renderPositionSelects() {
+      const selects = document.querySelectorAll(".posSelect");
+
+      selects.forEach(sel => {
+        const pos = sel.id.replace("pos_", "");
+        sel.innerHTML = "";
+
+        const blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = " ";
+        sel.appendChild(blank);
+
+        selectedPlayers.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+
+          if (positionAssignments[pos] === name) opt.selected = true;
+
+          sel.appendChild(opt);
+        });
+      });
+    }
+
+    // 포지션 중복 방지 + 자동 재배치
+    function updatePosition(pos, playerName) {
+      for (const p in positionAssignments) {
+        if (positionAssignments[p] === playerName) {
+          positionAssignments[p] = "";
+        }
+      }
+
+      positionAssignments[pos] = playerName;
+
+      renderPositionSelects();
+    }
+
+    function saveOrder() {
+      alert("저장은 추후 구현됩니다!");
+    }
+  </script>
 
 </body>
+
 </html>
