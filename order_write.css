@@ -1,0 +1,76 @@
+/* =========================
+   order_write.html 전용 스타일
+   ========================= */
+
+/* 고정 레이아웃 */
+#mainArea {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+/* 좌측 패널: 참가명단 */
+.panelBox {
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+/* 중앙 영역 */
+#positionWrapper {
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 필드 이미지 (★ 꼭 필요했던 코드) */
+#areaB1 {
+  width: 360px;
+  height: 288px;
+  background-image: url('field.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* 절대 위치 포지션 select */
+.posSelect {
+  position: absolute;
+  width: 95px;
+  padding: 3px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+/* 필드 좌표 */
+#pos_CF { top:10%; left:50%; transform:translateX(-50%); }
+#pos_LF { top:23%; left:15%; }
+#pos_RF { top:23%; right:15%; }
+#pos_SS { top:40%; left:20%; }
+#pos_2B { top:40%; right:20%; }
+#pos_3B { top:60%; left:5%; }
+#pos_1B { top:60%; right:5%; }
+#pos_P  { top:60%; left:50%; transform:translateX(-50%); }
+#pos_C  { top:82%; left:50%; transform:translateX(-50%); }
+#pos_DH { top:88%; right:3%; }
+
+#middleWrapper {
+  display: flex;
+  gap: 10px;
+}
+
+/* =========================
+   테이블 개별 px 크기
+   ========================= */
+
+/* 상태 표시 색 */
+.warningRow { background: #fff7a0 !important; }
+.position-selected { background: #fff7a0 !important; }
+.position-locked   { background: #e2e2e2 !important; }

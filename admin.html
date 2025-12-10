@@ -4,58 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>⚾ 삼성 헌터스 선수 포지션 ⚾</title>
-  <!-- 공통 버튼 스타일 적용 -->
-  <link rel="stylesheet" href="buttonStyles.css" />
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
 
-    th,
-    td {
-      border: 1px solid #999;
-      padding: 6px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #bae4ff !important;
-    }
-
-    input[type="text"]{
-      width: 4em;
-      text-align: center;
-    }
-
-    input[type="number"] {
-      width: 3em;
-      text-align: center;
-    }
-
-    select {
-      width: 6em;
-    }
-
-    .controls {
-      text-align: left;
-      margin-top: 20px;
-    }
-
-    table thead th {
-      position: sticky;
-      top: 0;
-      background: #bae4ff !important;
-      z-index: 5;
-    }
-
-    /* 수정된 행 강조 */
-    tr.modified {
-      background-color: #fff8d1 !important;
-      /* 옅은 노랑 */
-    }
-  </style>
+  <link rel="stylesheet" href="common.css" />
+  <link rel="stylesheet" href="admin.css" />
 </head>
 
 <body>
@@ -65,10 +16,9 @@
 
   <h1>⚾ 삼성 헌터스 선수 포지션 ⚾</h1>
 
-  <!-- 새로운 선수 추가 영역 -->
+  <span class="new-player-title">신규 선수 추가</span>
 
-  <tr>신규 선수 추가</tr>
-  <table>
+  <table class="table_common table_admin_add">
     <thead>
       <tr>
         <th>이름</th>
@@ -98,13 +48,14 @@
       </tr>
     </tbody>
   </table>
-  <!-- 기존 선수 목록 테이블 -->
+
   <div class="controls">
-    <tr>선수목록</tr>
+    <span>선수목록</span>
     <button class="buttonStyles" onclick="saveAll()">💾 저장</button>
     <button class="buttonStyles" onclick="loadPlayers()">↩ 원래대로</button>
   </div>
-  <table id="playerTable">
+
+  <table id="playerTable" class="table_common table_admin_list">
     <thead>
       <tr>
         <th>이름 <button onclick="setSort('name')">⇅</button></th>
@@ -121,6 +72,7 @@
     </thead>
     <tbody></tbody>
   </table>
+
 
   <script>
     const API = {
@@ -199,8 +151,6 @@
       return result.status === "성공";
     }
 
-
-    // 값 변경 시 modified 클래스 적용
     function addModificationListeners() {
       document.querySelectorAll("#playerTable tbody tr").forEach(tr => {
         tr.querySelectorAll("input, select").forEach(el => {
@@ -251,7 +201,6 @@
 
       if (!name || !num) return alert("이름과 배번은 필수입니다.");
 
-      // 중복 이름 체크
       const existing = Array.from(
         document.querySelectorAll("#playerTable tbody tr td:first-child input")
       ).map(i => i.value.trim());
@@ -277,16 +226,15 @@
 
       const tbody = document.querySelector("#playerTable tbody");
       tbody.appendChild(tr);
-      tr.classList.add("modified");   // ★ 추가된 행도 하이라이트
-      addModificationListeners();     // 기존 이벤트 리스너도 연결
+      tr.classList.add("modified");
 
-      // 추가 후 입력창 초기화
+      addModificationListeners();
+
       document.getElementById("add_name").value = "";
       document.getElementById("add_num").value = "";
       POS_FIELDS.forEach(pos => {
         document.getElementById(`add_${pos}`).value = "0";
       });
-
     }
 
     async function saveAll() {
@@ -319,6 +267,7 @@
       const result = await res.json();
       if (result.status === "성공") {
         alert("저장되었습니다!");
+
         document.querySelectorAll("#playerTable tbody tr").forEach(tr => {
           tr.classList.remove("modified");
         });
@@ -329,7 +278,6 @@
       }
     }
 
-    // 초기 실행
     initAddSelects();
     loadPlayers();
 

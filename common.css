@@ -1,0 +1,64 @@
+/* =========================
+   공통 버튼 스타일
+   ========================= */
+.buttonStyles {
+  padding: 4px 4px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #9f9f9f;
+  cursor: pointer;
+  transition: 0.15s ease;
+  user-select: none;
+}
+
+.buttonStyles:hover {
+  background: #f2f2f2;
+}
+
+.buttonStyles:active {
+  background: #e2e2e2;
+  transform: scale(0.98);
+}
+
+.buttonDanger {
+  background: #ff4b4b;
+  color: white;
+}
+
+.buttonPrimary {
+  background: #007bff;
+  color: white;
+}
+
+/* =========================
+   공통 테이블 스타일 (폭 없음)
+   ========================= */
+.table_common {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table_common th,
+.table_common td {
+  height: 22px;
+  border: 1px solid #999;
+  padding: 6px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table_common th {
+  background-color: #bae4ff;
+}
+
+/* =========================
+   공통 input/select
+   ========================= */
+input[type="text"],
+input[type="number"],
+select {
+  text-align: center;
+}

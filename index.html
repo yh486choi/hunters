@@ -5,25 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>삼성 헌터스</title>
 
-  <!-- 공통 버튼 스타일 적용 -->
-  <link rel="stylesheet" href="buttonStyles.css" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .adminButtonBox {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="common.css" />
+  <link rel="stylesheet" href="index.css" />
 </head>
 
 <body>
@@ -52,10 +35,7 @@ async function changePassword() {
   const res = await fetch(API.updatePw, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      oldPassword: oldPw,
-      newPassword: newPw
-    })
+    body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
   });
 
   const result = await res.json();

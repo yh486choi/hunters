@@ -1,0 +1,37 @@
+/* =========================
+   admin.html 전용 스타일
+   ========================= */
+
+/* 표 사이즈 (형님이 원하는 대로 수정가능) */
+.table_admin_add {
+  width: 850px; /* 임시 값 */
+}
+
+.table_admin_list {
+  width: 1100px; /* 임시 값 */
+}
+
+/* sticky header */
+table thead th {
+  position: sticky;
+  top: 0;
+  background: #bae4ff !important;
+  z-index: 5;
+}
+
+/* 신규 선수 추가 라벨 */
+.new-player-title {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+}
+
+/* 수정된 행 강조 */
+.modified {
+  background-color: #fff8d1 !important;
+}
+
+.controls {
+  text-align: left;
+  margin-top: 20px;
+}
