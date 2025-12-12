@@ -72,7 +72,6 @@
 
 
 #positionWrapper {
-  position: relative;
   width: 360px;
   height: 288px;
   background-image: url("field.png");
@@ -92,62 +91,57 @@
   font-weight: bold;
   background: rgba(255, 255, 255, 0.75);
   border-radius: 4px;
-  transform: translate(-50%, -50%);
-
-  display: flex;
-  align-items: center;      /* 세로 중앙 */
-  justify-content: center;  /* 가로 중앙 */
 }
 
 /* 포지션 좌표 */
 #pos_P {
   top: 63%;
-  left: 50%;
+  left: 40%;
 }
 
 #pos_C {
   top: 80%;
-  left: 50%;
+  left: 40%;
 }
 
 #pos_1B {
   top: 63%;
-  left: 75%;
+  left: 65%;
 }
 
 #pos_3B {
   top: 63%;
-  left: 25%;
+  left: 15%;
 }
 
 #pos_2B {
   top: 45%;
-  left: 65%;
+  left: 55%;
 }
 
 #pos_SS {
   top: 45%;
-  left: 35%;
+  left: 25%;
 }
 
 #pos_LF {
   top: 28%;
-  left: 27%;
+  left: 17%;
 }
 
 #pos_CF {
   top: 16%;
-  left: 50%;
+  left: 40%;
 }
 
 #pos_RF {
   top: 28%;
-  left: 73%;
+  left: 63%;
 }
 
 #pos_DH {
-  top: 88%;
-  left: 80%;
+  top: 85%;
+  left: 70%;
 }
 
 .table_common {
