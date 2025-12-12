@@ -16,8 +16,10 @@
   <div id="mainArea" style="margin-top: 20px;">
     <div id="orderViewArea">
       <div id="viewButtons">
-        <button class="buttonStyles" id="captureBtn">📷 캡처</button>
         <button class="buttonStyles" id="editBtn">📝 수정</button>
+        <button class="buttonStyles" id="captureBtn">📷 캡처</button>
+        <button class="buttonStyles" onclick="copyCurrentLink()">🔗 링크</button>
+        <button class="buttonStyles" onclick="shareCurrentLink()">📤 공유</button>
       </div>
 
       <div id="orderViewPanel">
@@ -442,10 +444,7 @@
         alert("삭제 처리 중 오류 발생.");
       }
 
-      loadOrderList();
-      document.querySelector("#startingTable tbody").innerHTML = "";
-      document.querySelector("#waitingTable tbody").innerHTML = "";
-      document.getElementById("selectedOrderName").textContent = "오더를 선택하세요";
+      location.reload();
     }
 
     /* 캡처 */
@@ -522,6 +521,22 @@
       if (upd.status === "성공") alert("변경 완료!");
       else alert("변경 실패: " + upd.error);
     }
+
+    function shareCurrentLink() {
+      const url = window.location.href;
+
+      if (navigator.share) {
+        navigator.share({
+          title: document.title,
+          url: url
+        });
+      } else {
+        // 지원 안 되는 환경 → 복사로 대체
+        navigator.clipboard.writeText(url);
+        alert("공유 기능이 없어 링크를 복사했습니다.");
+      }
+    }
+
 
   </script>
 
