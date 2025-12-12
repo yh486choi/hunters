@@ -33,6 +33,7 @@
           <div class="posBox" id="pos_LF"></div>
           <div class="posBox" id="pos_CF"></div>
           <div class="posBox" id="pos_RF"></div>
+          <div class="posBox" id="pos_DH"></div>
         </div>
 
 
@@ -323,7 +324,7 @@
 
     /* 포지션 출력 */
     function renderPositions(pos) {
-      ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"].forEach(key => {
+      ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"].forEach(key => {
         const box = document.getElementById("pos_" + key);
         const name = pos[key];
         box.textContent = name ? nameWithNum(name, window._currentPlayers) : "";
