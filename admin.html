@@ -94,7 +94,6 @@
       updatePlayers: "https://updateplayers-2guymqucma-uc.a.run.app"
     };
 
-    /* 테마 관련 로직 추가 */
     function applySavedTheme() {
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'dark') {
@@ -123,7 +122,6 @@
       window.location.href = "index.html";
     }
 
-    /* 신규 선수 입력 기본값 */
     function initAddSelects() {
       POS_FIELDS.forEach(pos => {
         const sel = document.getElementById(`add_${pos}`);
@@ -138,14 +136,35 @@
       });
     }
 
+    // [개선됨] 서버 요청 없이 현재 화면 데이터로 정렬
     function setSort(field) {
+      // 1. 현재 화면의 모든 행 데이터를 수집 (수정된 상태 포함)
+      const rows = Array.from(document.querySelectorAll("#playerTable tbody tr"));
+      const currentData = rows.map(tr => {
+        const tds = tr.querySelectorAll("td");
+        const playerObj = {
+          name: tds[0].querySelector("input").value.trim(),
+          num: tds[1].querySelector("input").value.trim(),
+          isModified: tr.classList.contains("modified") // 노란색 음영 상태 기억
+        };
+        POS_FIELDS.forEach((pos, idx) => {
+          playerObj[pos] = tds[idx + 2].querySelector("select").value;
+        });
+        return playerObj;
+      });
+
+      // 2. 정렬 상태 토글
       if (currentSortField === field) {
         currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
       } else {
         currentSortField = field;
         currentSortOrder = "asc";
       }
-      loadPlayers();
+
+      // 3. 수집한 데이터 정렬 후 다시 그리기
+      const sorted = sortData(currentData);
+      renderPlayerTable(sorted);
+      addModificationListeners();
     }
 
     function sortData(list) {
@@ -176,7 +195,6 @@
       return res.status === "성공";
     }
 
-    /* 수정된 행 표시 */
     function addModificationListeners() {
       document.querySelectorAll("#playerTable tbody tr").forEach(tr => {
         tr.querySelectorAll("input, select").forEach(el => {
@@ -200,6 +218,8 @@
 
       data.forEach(player => {
         const tr = document.createElement("tr");
+        // 정렬 후에도 음영 상태 복구
+        if (player.isModified) tr.classList.add("modified");
 
         tr.innerHTML += `<td style="width:70px"><input type="text" value="${player.name}" style="width:50px"></td>`;
         tr.innerHTML += `<td style="width:70px"><input type="number" value="${player.num}" style="width:40px"></td>`;
@@ -230,34 +250,35 @@
         return alert("배번은 0부터 99 사이의 숫자여야 합니다.");
       }
 
-
       const existing = Array.from(
         document.querySelectorAll("#playerTable tbody tr td:first-child input")
       ).map(i => i.value.trim());
 
       if (existing.includes(name)) return alert("이미 존재하는 이름입니다.");
 
-      const tr = document.createElement("tr");
-
-      tr.innerHTML += `<td style="width:70px"><input type="text" value="${name}" style="width:50px"></td>`;
-      tr.innerHTML += `<td style="width:70px"><input type="number" value="${num}" style="width:40px"></td>`;
-
+      // 테이블에 즉시 추가 및 modified 부여
+      const playerObj = {
+        name: name,
+        num: num,
+        isModified: true
+      };
       POS_FIELDS.forEach(pos => {
-        const v = document.getElementById(`add_${pos}`).value;
-        let html = `<td><select>`;
-        ["0", "1", "2"].forEach(x => {
-          html += `<option value="${x}" ${x === v ? "selected" : ""}>${LABELS[x]}</option>`;
-        });
-        html += `</select></td>`;
-        tr.innerHTML += html;
+        playerObj[pos] = document.getElementById(`add_${pos}`).value;
       });
 
-      tr.innerHTML += `<td><button class="buttonStyles" onclick="this.parentElement.parentElement.remove()">🗑 삭제</button></td>`;
+      const rows = Array.from(document.querySelectorAll("#playerTable tbody tr")).map(tr => {
+        const tds = tr.querySelectorAll("td");
+        const obj = {
+          name: tds[0].querySelector("input").value.trim(),
+          num: tds[1].querySelector("input").value.trim(),
+          isModified: tr.classList.contains("modified")
+        };
+        POS_FIELDS.forEach((pos, idx) => { obj[pos] = tds[idx + 2].querySelector("select").value; });
+        return obj;
+      });
 
-      const tbody = document.querySelector("#playerTable tbody");
-      tbody.appendChild(tr);
-      tr.classList.add("modified");
-
+      rows.push(playerObj);
+      renderPlayerTable(sortData(rows));
       addModificationListeners();
 
       document.getElementById("add_name").value = "";
@@ -267,7 +288,6 @@
       });
     }
 
-    /* 저장 */
     async function saveAll() {
       const ok = await verifyPassword();
       if (!ok) return alert("비밀번호 오류!");
@@ -289,7 +309,6 @@
         };
       });
 
-      // 중복 이름 체크
       const names = list.map(p => p.name);
       const set = new Set(names);
       if (set.size !== names.length) {
@@ -311,7 +330,7 @@
     }
 
     initAddSelects();
-    applySavedTheme(); // 초기 실행 시 테마 복구
+    applySavedTheme();
     loadPlayers();
   </script>
 
