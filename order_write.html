@@ -230,9 +230,16 @@
     }
 
     function addPlayer() {
-      const name = document.getElementById('playerSelect').value;
-      if (name && !selectedPlayers.includes(name)) selectedPlayers.push(name);
-      refreshAll();
+      const selectElement = document.getElementById('playerSelect');
+      const name = selectElement.value;
+      if (name && !selectedPlayers.includes(name)) {
+        selectedPlayers.push(name);
+        refreshAll();
+        // 추가 후 select box 초기화
+        if(selectElement.options.length > 0) {
+          selectElement.selectedIndex = 0; 
+        }
+      }
     }
 
     function removePlayer(name) {
@@ -263,11 +270,30 @@
     }
 
     function updatePosition(pos, name) {
-      for (const key in positionAssignments) { if (key !== pos && positionAssignments[key] === name) positionAssignments[key] = ''; }
+      // 1. 기존에 이 포지션을 맡고 있던 선수가 누군지 확인
+      const oldPlayer = positionAssignments[pos];
+
+      // 2. 만약 기존 선수가 있고, 이번에 새로운 선수(name)나 빈칸으로 바뀌어 포지션을 잃는다면?
+      if (oldPlayer && oldPlayer !== name) {
+        // 타순(startingList)에서 기존 선수를 찾아 빈칸으로 초기화 (-> 대기 명단으로 돌아감)
+        const oldPlayerIndex = startingList.findIndex(r => r.name === oldPlayer);
+        if (oldPlayerIndex !== -1) {
+          startingList[oldPlayerIndex] = { name: '', num: '', pos: '' };
+        }
+      }
+
+      // 3. 새로 들어갈 선수가 이미 다른 포지션을 맡고 있었다면 거기를 비워줌
+      for (const key in positionAssignments) { 
+        if (key !== pos && positionAssignments[key] === name) {
+          positionAssignments[key] = '';
+        } 
+      }
+      
+      // 4. 새로운 포지션 할당
       positionAssignments[pos] = name;
       refreshAll();
     }
-
+    
     function setupStartingTable() {
       const tbody = document.getElementById('startingTableBody');
       tbody.innerHTML = '';
@@ -421,7 +447,18 @@
 
     let pendingOutfieldPlayer = null;
     function onAbilityClick(name, posKey, e) {
+      // 1. 현재 이 선수가 어떤 포지션을 맡고 있는지 확인
+      const currentPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
+
+      // --- 외야수(OF) 처리 ---
       if (posKey === 'of') {
+        // 이미 외야수(CF, LF, RF)로 지정된 상태에서 다시 누르면 -> 포지션에서 빼기 (팝업 안 띄움)
+        if (currentPos && ['CF', 'LF', 'RF'].includes(currentPos)) {
+          updatePosition(currentPos, ''); 
+          return;
+        }
+        
+        // 외야수가 아니라면 기존처럼 팝업 띄우기
         e.stopPropagation();
         pendingOutfieldPlayer = name;
         const popup = document.getElementById("outfieldPopup");
@@ -429,14 +466,27 @@
         popup.style.display = "block";
         return;
       }
+      
+      // --- 내야수 및 배터리 처리 ---
       const posMap = { p: 'P', c: 'C', '1b': '1B', '2b': '2B', '3b': '3B', ss: 'SS' };
-      updatePosition(posMap[posKey], name);
-      refreshAll();
+      const targetPos = posMap[posKey];
+
+      // 이미 해당 포지션에 배치된 상태에서 다시 누르면 -> 빈칸('')으로 업데이트해서 빼기
+      if (positionAssignments[targetPos] === name) {
+        updatePosition(targetPos, '');
+      } else {
+        // 그 외의 경우는 정상적으로 해당 포지션에 배치
+        updatePosition(targetPos, name);
+      }
     }
 
     function selectOutfieldPosition(posCode) {
-      if (pendingOutfieldPlayer) updatePosition(posCode, pendingOutfieldPlayer);
-      pendingOutfieldPlayer = null; closeOutfieldPopup(); refreshAll();
+      if (pendingOutfieldPlayer) {
+        // updatePosition 내부에서 refreshAll을 호출하므로 여기서는 생략
+        updatePosition(posCode, pendingOutfieldPlayer); 
+      }
+      pendingOutfieldPlayer = null; 
+      closeOutfieldPopup(); 
     }
 
     function closeOutfieldPopup() { document.getElementById("outfieldPopup").style.display = "none"; }
@@ -522,12 +572,17 @@
       const orderName = new URLSearchParams(window.location.search).get("orderName");
       if (orderName) {
         document.getElementById('orderName').value = orderName;
-        const data = await fetch("https://getorder-2guymqucma-uc.a.run.app?name=" + encodeURIComponent(orderName)).then(r => r.json());
-        if (data && data.payload) {
-          selectedPlayers = data.payload.players.map(p => p.name);
-          positionAssignments = { ...positionAssignments, ...data.payload.positions };
-          startingList = [...data.payload.startingList];
-          refreshAll();
+        try {
+          const data = await fetch("https://getorder-2guymqucma-uc.a.run.app?name=" + encodeURIComponent(orderName)).then(r => r.json());
+          if (data && data.payload) {
+            selectedPlayers = data.payload.players ? data.payload.players.map(p => p.name) : [];
+            positionAssignments = { ...positionAssignments, ...data.payload.positions };
+            // startingList가 배열인지 확인하고 할당
+            startingList = Array.isArray(data.payload.startingList) ? [...data.payload.startingList] : Array(10).fill().map(() => ({ name: '', pos: '' }));
+            refreshAll();
+          }
+        } catch (e) {
+          console.error("오더 정보를 불러오는 데 실패했습니다.", e);
         }
       }
 
