@@ -206,9 +206,6 @@
           textDiv.style.justifyContent = 'center';
           textDiv.style.width = origSel.offsetWidth + 'px';
           textDiv.style.height = origSel.offsetHeight + 'px'; // 높이도 원본과 동일하게
-          textDiv.style.fontWeight = 'bold';
-          textDiv.style.color = getComputedStyle(document.body).color;
-          textDiv.style.fontSize = getComputedStyle(origSel).fontSize; // 폰트 크기도 일치시킴
           
           // 치환
           clonedSel.parentNode.replaceChild(textDiv, clonedSel);
