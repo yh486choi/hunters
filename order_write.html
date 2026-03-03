@@ -62,81 +62,82 @@
       </table>
     </div>
 
-    <div id='positionWrapper'>
+    <div id="orderViewPanel">
+      <div id='positionWrapper'>
+        <div id='areaB1'>
+          <select id='pos_CF' class='posSelect' onchange='updatePosition("CF", this.value)'></select>
+          <select id='pos_LF' class='posSelect' onchange='updatePosition("LF", this.value)'></select>
+          <select id='pos_RF' class='posSelect' onchange='updatePosition("RF", this.value)'></select>
 
-      <div id='areaB1'>
-        <select id='pos_CF' class='posSelect' onchange='updatePosition("CF", this.value)'></select>
-        <select id='pos_LF' class='posSelect' onchange='updatePosition("LF", this.value)'></select>
-        <select id='pos_RF' class='posSelect' onchange='updatePosition("RF", this.value)'></select>
+          <select id='pos_SS' class='posSelect' onchange='updatePosition("SS", this.value)'></select>
+          <select id='pos_2B' class='posSelect' onchange='updatePosition("2B", this.value)'></select>
+          <select id='pos_3B' class='posSelect' onchange='updatePosition("3B", this.value)'></select>
+          <select id='pos_1B' class='posSelect' onchange='updatePosition("1B", this.value)'></select>
 
-        <select id='pos_SS' class='posSelect' onchange='updatePosition("SS", this.value)'></select>
-        <select id='pos_2B' class='posSelect' onchange='updatePosition("2B", this.value)'></select>
-        <select id='pos_3B' class='posSelect' onchange='updatePosition("3B", this.value)'></select>
-        <select id='pos_1B' class='posSelect' onchange='updatePosition("1B", this.value)'></select>
-
-        <select id='pos_P' class='posSelect' onchange='updatePosition("P", this.value)'></select>
-        <select id='pos_C' class='posSelect' onchange='updatePosition("C", this.value)'></select>
-        <select id='pos_DH' class='posSelect' onchange='updatePosition("DH", this.value)'></select>
+          <select id='pos_P' class='posSelect' onchange='updatePosition("P", this.value)'></select>
+          <select id='pos_C' class='posSelect' onchange='updatePosition("C", this.value)'></select>
+          <select id='pos_DH' class='posSelect' onchange='updatePosition("DH", this.value)'></select>
+        </div>
       </div>
 
       <div id='middleWrapper'>
+          <div id='areaC1'>
+            <table class="table_common">
+              <caption style='font-weight:bolder;'>선발 명단</caption>
+              <thead>
+                <tr>
+                  <th style="width: 25px;">타순</th>
+                  <th style="width: 90px;">선수명</th>
+                  <th style="width: 100px;">포지션</th>
+                </tr>
+              </thead>
+              <tbody id='startingTableBody'></tbody>
+            </table>
+          </div>
 
-        <div id='areaC1'>
-          <table class="table_common">
-            <caption style='font-weight:bolder;'>선발 명단</caption>
-            <thead>
-              <tr>
-                <th style="width: 25px;">타순</th>
-                <th style="width: 90px;">선수명</th>
-                <th style="width: 100px;">포지션</th>
-              </tr>
-            </thead>
-            <tbody id='startingTableBody'></tbody>
-          </table>
-        </div>
 
-        <div id='areaC2'>
-          <table class="table_common">
-            <caption style='font-weight:bolder;'>대기 명단</caption>
-            <thead>
-              <tr>
-                <th style="width: 80px;">선수명</th>
-              </tr>
-            </thead>
-            <tbody id='waitingTableBody'>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <div id='areaC2'>
+            <table class="table_common">
+              <caption style='font-weight:bolder;'>대기 명단</caption>
+              <thead>
+                <tr>
+                  <th style="width: 80px;">선수명</th>
+                </tr>
+              </thead>
+              <tbody id='waitingTableBody'>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
       </div>
     </div>
 
@@ -153,8 +154,8 @@
       const filename = orderNameInput ? `order_${orderNameInput}.jpg` : 'order_capture.jpg';
       
       showLoading("이미지 생성 중...");
-      // 캡처할 영역 지정 (positionWrapper 전체)
-      const target = document.getElementById("positionWrapper"); 
+      // 캡처할 영역 지정 (orderViewPanel 전체)
+      const target = document.getElementById("orderViewPanel"); 
       
       try {
         const canvas = await html2canvas(target, { scale: 2, useCORS: true });

@@ -21,7 +21,7 @@
 }
 
 /* 중앙 영역 */
-#positionWrapper {
+#orderViewPanel {
   flex-shrink: 0;
   width: 360px;
   position: relative;
@@ -35,7 +35,7 @@
   overflow: hidden;
 }
 
-#positionWrapper::before {
+#orderViewPanel::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -48,7 +48,7 @@
   pointer-events: none;
 }
 
-#positionWrapper>* {
+#orderViewPanel>* {
   position: relative;
   z-index: 1;
 }
