@@ -151,11 +151,24 @@
     // order_write.html 내의 <script> 안에 추가
     async function captureOrder() {
       const orderNameInput = document.getElementById('orderName').value.trim();
-      const filename = orderNameInput ? `order_${orderNameInput}.jpg` : 'order_capture.jpg';
+      
+      // 1. 현재 시간 포맷팅 (YYMMDDHHMMSS)
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const timeString = `_${yy}${mm}${dd}${hh}${min}${ss}`;
+
+      // 2. 파일명 조합 (예: order_260303_260303230800.jpg)
+      const baseName = orderNameInput ? `order_${orderNameInput}` : 'order_capture';
+      const filename = `${baseName}${timeString}.jpg`;
       
       showLoading("이미지 생성 중...");
       
-      const originalTarget = document.getElementById("positionWrapper");
+      const originalTarget = document.getElementById("orderViewPanel");
       const clone = originalTarget.cloneNode(true);
       
       clone.style.position = 'absolute';
@@ -215,7 +228,7 @@
       }
     }
 
-    
+
     function showLoading(text = "처리 중...") {
       document.getElementById("loadingText").textContent = text;
       document.getElementById("loadingOverlay").style.display = "flex";
