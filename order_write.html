@@ -200,13 +200,6 @@
           textDiv.id = origSel.id;
           textDiv.className = origSel.className;
           
-          // 기존 select 박스의 크기와 텍스트 중앙 정렬 스타일 복사
-          textDiv.style.display = 'flex';
-          textDiv.style.alignItems = 'center';
-          textDiv.style.justifyContent = 'center';
-          textDiv.style.width = origSel.offsetWidth + 'px';
-          textDiv.style.height = origSel.offsetHeight + 'px'; // 높이도 원본과 동일하게
-          
           // 치환
           clonedSel.parentNode.replaceChild(textDiv, clonedSel);
         }
