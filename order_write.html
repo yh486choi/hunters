@@ -149,61 +149,58 @@
 
 <script>
     // order_write.html 내의 <script> 안에 추가
-// 캡처 기능 (드롭다운 텍스트 치환 방식 적용)
     async function captureOrder() {
       const orderNameInput = document.getElementById('orderName').value.trim();
       const filename = orderNameInput ? `order_${orderNameInput}.jpg` : 'order_capture.jpg';
       
       showLoading("이미지 생성 중...");
       
-      // 1. 원본 타겟 가져오기
-      const originalTarget = document.getElementById("orderViewPanel");
-      
-      // 2. 원본과 똑같은 복제본 생성
+      const originalTarget = document.getElementById("positionWrapper");
       const clone = originalTarget.cloneNode(true);
       
-      // 3. 복제본을 화면 밖(안 보이는 곳)에 배치 (html2canvas가 읽으려면 DOM에 존재해야 함)
       clone.style.position = 'absolute';
       clone.style.top = '-9999px';
       clone.style.left = '-9999px';
-      clone.style.backgroundColor = getComputedStyle(document.body).backgroundColor; // 현재 테마 배경색 유지
-      clone.style.padding = '20px'; // 캡처 여백 조금 추가
-      clone.style.borderRadius = '10px';
+      // 배경색이 투명하게 나오지 않도록 body의 배경색을 가져와 깔아줍니다
+      clone.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
       document.body.appendChild(clone);
       
       try {
-        // 4. 원본과 복제본의 모든 select 요소를 찾음
         const originalSelects = originalTarget.querySelectorAll('select');
         const cloneSelects = clone.querySelectorAll('select');
         
-        // 5. 복제본의 select를 순회하며 텍스트(span)로 교체
         for (let i = 0; i < originalSelects.length; i++) {
           const origSel = originalSelects[i];
           const clonedSel = cloneSelects[i];
           
-          // 현재 선택된 옵션의 텍스트 가져오기 (예: "홍길동(11)")
           let selectedText = "";
           if (origSel.selectedIndex >= 0) {
             selectedText = origSel.options[origSel.selectedIndex].text;
           }
-          if (selectedText.trim() === '') selectedText = ''; // 빈칸 처리
+          if (selectedText.trim() === '') selectedText = '';
           
-          // 텍스트를 담을 span 요소 생성
-          const span = document.createElement('span');
-          span.textContent = selectedText;
+          // span 대신 div를 사용해야 박스 형태의 위치(absolute)와 크기를 잡기 수월합니다
+          const textDiv = document.createElement('div');
+          textDiv.textContent = selectedText;
           
-          // 기존 select 박스와 비슷한 크기와 정렬을 가지도록 스타일 지정
-          span.style.display = 'inline-block';
-          span.style.width = origSel.offsetWidth + 'px'; // 원본 select의 너비 그대로 가져옴
-          span.style.textAlign = 'center';
-          span.style.fontWeight = 'bold';
-          span.style.color = getComputedStyle(document.body).color; // 현재 테마 글자색
+          // ⭐ 핵심: CSS 위치 속성을 유지하기 위해 원본의 id와 class를 그대로 복사!
+          textDiv.id = origSel.id;
+          textDiv.className = origSel.className;
           
-          // 복제본에서 select 요소를 빼고 span으로 바꿔치기
-          clonedSel.parentNode.replaceChild(span, clonedSel);
+          // 기존 select 박스의 크기와 텍스트 중앙 정렬 스타일 복사
+          textDiv.style.display = 'flex';
+          textDiv.style.alignItems = 'center';
+          textDiv.style.justifyContent = 'center';
+          textDiv.style.width = origSel.offsetWidth + 'px';
+          textDiv.style.height = origSel.offsetHeight + 'px'; // 높이도 원본과 동일하게
+          textDiv.style.fontWeight = 'bold';
+          textDiv.style.color = getComputedStyle(document.body).color;
+          textDiv.style.fontSize = getComputedStyle(origSel).fontSize; // 폰트 크기도 일치시킴
+          
+          // 치환
+          clonedSel.parentNode.replaceChild(textDiv, clonedSel);
         }
 
-        // 6. 텍스트로 치환된 복제본을 캡처
         const canvas = await html2canvas(clone, { scale: 2, useCORS: true });
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/jpeg", 0.92);
@@ -213,12 +210,12 @@
       } catch (err) {
         alert("이미지 캡처 오류: " + err.message);
       } finally {
-        // 7. 작업이 끝나면 화면 밖의 복제본을 깔끔하게 삭제
         document.body.removeChild(clone);
         hideLoading();
       }
     }
 
+    
     function showLoading(text = "처리 중...") {
       document.getElementById("loadingText").textContent = text;
       document.getElementById("loadingOverlay").style.display = "flex";
