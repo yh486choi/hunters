@@ -16,6 +16,7 @@
       }
     })();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 
 <body>
@@ -37,6 +38,7 @@
     <label>오더명: </label>
     <input type='text' id='orderName' placeholder='ex) 26-03-01 NBL' style='width:260px; padding:6px;' />
     <button class='buttonStyles' onclick='saveOrder()'>💾 저장</button>
+    <button class='buttonStyles' onclick='captureOrder()'>📷 캡처</button>
   </div>
 
   <div id='mainArea'>
@@ -144,7 +146,29 @@
 
   </div>
 
-  <script>
+<script>
+    // order_write.html 내의 <script> 안에 추가
+    async function captureOrder() {
+      const orderNameInput = document.getElementById('orderName').value.trim();
+      const filename = orderNameInput ? `order_${orderNameInput}.jpg` : 'order_capture.jpg';
+      
+      showLoading("이미지 생성 중...");
+      // 캡처할 영역 지정 (positionWrapper 전체)
+      const target = document.getElementById("positionWrapper"); 
+      
+      try {
+        const canvas = await html2canvas(target, { scale: 2, useCORS: true });
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/jpeg", 0.92);
+        link.download = filename;
+        link.click();
+      } catch (err) {
+        alert("이미지 캡처 오류: " + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
     function showLoading(text = "처리 중...") {
       document.getElementById("loadingText").textContent = text;
       document.getElementById("loadingOverlay").style.display = "flex";
@@ -161,6 +185,9 @@
       CF: '', LF: '', RF: '', SS: '', '2B': '', '3B': '', P: '', C: '', DH: '', '1B': ''
     };
     let startingList = Array(10).fill().map(() => ({ name: '', pos: '' }));
+    
+    // 새로 추가된 상태: 대기 명단에서 취소선 처리된 선수 목록
+    let excludedPlayers = [];
 
     const abilityPositions = [
       { key: 'p', label: '투수' }, { key: 'c', label: '포수' },
@@ -244,8 +271,12 @@
 
     function removePlayer(name) {
       selectedPlayers = selectedPlayers.filter(n => n !== name);
+      // 포지션 제거
       for (const key in positionAssignments) { if (positionAssignments[key] === name) positionAssignments[key] = ''; }
+      // 선발명단 제거
       startingList = startingList.map(r => r.name === name ? { name: '', num: '', pos: '' } : r);
+      // 취소선 명단에서도 제거
+      excludedPlayers = excludedPlayers.filter(n => n !== name);
       refreshAll();
     }
 
@@ -270,27 +301,28 @@
     }
 
     function updatePosition(pos, name) {
-      // 1. 기존에 이 포지션을 맡고 있던 선수가 누군지 확인
+      // 1. 기존 선수 확인 및 타순에서 제거
       const oldPlayer = positionAssignments[pos];
-
-      // 2. 만약 기존 선수가 있고, 이번에 새로운 선수(name)나 빈칸으로 바뀌어 포지션을 잃는다면?
       if (oldPlayer && oldPlayer !== name) {
-        // 타순(startingList)에서 기존 선수를 찾아 빈칸으로 초기화 (-> 대기 명단으로 돌아감)
         const oldPlayerIndex = startingList.findIndex(r => r.name === oldPlayer);
         if (oldPlayerIndex !== -1) {
           startingList[oldPlayerIndex] = { name: '', num: '', pos: '' };
         }
       }
 
-      // 3. 새로 들어갈 선수가 이미 다른 포지션을 맡고 있었다면 거기를 비워줌
+      // 2. 새 선수 이전 포지션 비우기
       for (const key in positionAssignments) { 
         if (key !== pos && positionAssignments[key] === name) {
           positionAssignments[key] = '';
         } 
       }
       
-      // 4. 새로운 포지션 할당
+      // 3. 새 포지션 할당 및 대기명단 취소선 해제 (경기에 투입되므로)
       positionAssignments[pos] = name;
+      if (name) {
+        excludedPlayers = excludedPlayers.filter(n => n !== name);
+      }
+      
       refreshAll();
     }
     
@@ -358,29 +390,73 @@
         const p = playerDB.find(x => x.name === name);
         const foundPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
         startingList[idx] = { name, num: p.num, pos: convertPosition(foundPos) };
+        // 선발에 투입되면 취소선 명단에서 제거
+        excludedPlayers = excludedPlayers.filter(n => n !== name);
       }
       refreshAll();
+    }
+
+    // 새로 추가된 취소선 토글 함수
+    function toggleExcluded(name) {
+      if (!name) return;
+      if (excludedPlayers.includes(name)) {
+        excludedPlayers = excludedPlayers.filter(n => n !== name);
+      } else {
+        excludedPlayers.push(name);
+      }
+      renderWaitingTable(); // 전체 리프레시 대신 대기 명단만 다시 그리기
     }
 
     function renderWaitingTable() {
       const tbody = document.getElementById('waitingTableBody');
       const rows = Array.from(tbody.querySelectorAll('tr'));
+      
       const used = startingList.map(r => r.name).filter(Boolean);
-      const waitingList = selectedPlayers.filter(n => !used.includes(n)).sort((a, b) => a.localeCompare(b, 'ko'));
-      const totalNeeded = Math.max(10, waitingList.length);
+      // 순수 대기자 목록
+      const allWaiting = selectedPlayers.filter(n => !used.includes(n));
+      
+      // 취소선 없는 사람과 있는 사람으로 분리 후 각각 정렬
+      const activeWaiting = allWaiting.filter(n => !excludedPlayers.includes(n)).sort((a, b) => a.localeCompare(b, 'ko'));
+      const inactiveWaiting = allWaiting.filter(n => excludedPlayers.includes(n)).sort((a, b) => a.localeCompare(b, 'ko'));
+      
+      // 두 배열을 합침 (활성 선수가 위, 취소선 선수가 아래)
+      const sortedWaitingList = [...activeWaiting, ...inactiveWaiting];
+
+      const totalNeeded = Math.max(10, sortedWaitingList.length);
       while (rows.length < totalNeeded) {
         const tr = document.createElement("tr"); tr.innerHTML = "<td></td>"; tbody.appendChild(tr); rows.push(tr);
       }
       while (rows.length > totalNeeded) { tbody.removeChild(rows.pop()); }
+      
       for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]; row.classList.remove("position-selected");
+        const row = rows[i]; 
+        
+        // 기존 클래스 및 이벤트 초기화
+        row.className = "";
+        row.onclick = null;
+        row.style.cursor = 'default';
+        
         const cell = row.querySelector("td");
-        const name = waitingList[i];
+        const name = sortedWaitingList[i];
+        
         if (name) {
           const assignedPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
           if (assignedPos) row.classList.add("position-selected");
+          
+          // 취소선 처리
+          if (excludedPlayers.includes(name)) {
+            row.classList.add("excluded-player");
+          }
+          
           cell.textContent = nameWithNum(name);
-        } else { cell.textContent = ""; }
+          
+          // 클릭 이벤트 추가
+          row.style.cursor = 'pointer';
+          row.onclick = () => toggleExcluded(name);
+          
+        } else { 
+          cell.textContent = ""; 
+        }
       }
     }
 
@@ -446,19 +522,16 @@
     }
 
     let pendingOutfieldPlayer = null;
+    
     function onAbilityClick(name, posKey, e) {
-      // 1. 현재 이 선수가 어떤 포지션을 맡고 있는지 확인
       const currentPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
 
-      // --- 외야수(OF) 처리 ---
       if (posKey === 'of') {
-        // 이미 외야수(CF, LF, RF)로 지정된 상태에서 다시 누르면 -> 포지션에서 빼기 (팝업 안 띄움)
         if (currentPos && ['CF', 'LF', 'RF'].includes(currentPos)) {
           updatePosition(currentPos, ''); 
           return;
         }
         
-        // 외야수가 아니라면 기존처럼 팝업 띄우기
         e.stopPropagation();
         pendingOutfieldPlayer = name;
         const popup = document.getElementById("outfieldPopup");
@@ -467,22 +540,18 @@
         return;
       }
       
-      // --- 내야수 및 배터리 처리 ---
       const posMap = { p: 'P', c: 'C', '1b': '1B', '2b': '2B', '3b': '3B', ss: 'SS' };
       const targetPos = posMap[posKey];
 
-      // 이미 해당 포지션에 배치된 상태에서 다시 누르면 -> 빈칸('')으로 업데이트해서 빼기
       if (positionAssignments[targetPos] === name) {
         updatePosition(targetPos, '');
       } else {
-        // 그 외의 경우는 정상적으로 해당 포지션에 배치
         updatePosition(targetPos, name);
       }
     }
 
     function selectOutfieldPosition(posCode) {
       if (pendingOutfieldPlayer) {
-        // updatePosition 내부에서 refreshAll을 호출하므로 여기서는 생략
         updatePosition(posCode, pendingOutfieldPlayer); 
       }
       pendingOutfieldPlayer = null; 
@@ -529,14 +598,15 @@
           return;
         }
 
-        // 4. 저장할 데이터 패키징
+        // 4. 저장할 데이터 패키징 (excludedPlayers도 함께 저장)
         const payload = {
           players: selectedPlayers.map(n => {
             const p = playerDB.find(x => x.name === n);
             return { name: n, num: p.num };
           }),
           positions: { ...positionAssignments },
-          startingList: startingList.map(r => ({ name: r.name, pos: r.pos }))
+          startingList: startingList.map(r => ({ name: r.name, pos: r.pos })),
+          excludedPlayers: excludedPlayers // 취소선 목록 추가
         };
 
         // 5. 서버에 오더 저장 요청
@@ -577,8 +647,11 @@
           if (data && data.payload) {
             selectedPlayers = data.payload.players ? data.payload.players.map(p => p.name) : [];
             positionAssignments = { ...positionAssignments, ...data.payload.positions };
-            // startingList가 배열인지 확인하고 할당
             startingList = Array.isArray(data.payload.startingList) ? [...data.payload.startingList] : Array(10).fill().map(() => ({ name: '', pos: '' }));
+            // 저장된 취소선 데이터가 있으면 불러오기
+            if(data.payload.excludedPlayers) {
+                excludedPlayers = [...data.payload.excludedPlayers];
+            }
             refreshAll();
           }
         } catch (e) {
@@ -592,7 +665,6 @@
       });
     };
   </script>
-
   <div id="outfieldPopup"
     style="display:none; position:fixed; background:var(--bg-main); border:2px solid var(--table-border); padding:20px; border-radius:10px; z-index:1000; text-align:center; color:var(--text-main);">
     <h3 style="margin-top:0;">외야 포지션 선택</h3>

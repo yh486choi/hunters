@@ -161,3 +161,8 @@ body.dark-mode td[style*="background: var(--highlight-bg)"] {
   background-color: var(--highlight-bg) !important;
   color: var(--highlight-text) !important;
 }
+
+.excluded-player td {
+  text-decoration: line-through;
+  color: #999; /* 흐리게 표시 */
+}
