@@ -232,7 +232,7 @@
       document.getElementById("loadingOverlay").style.display = "none";
     }
 
-    const API = { getPlayers: 'https://getplayers-2guymqucma-uc.a.run.app' };
+    const API = { getPlayers: "https://us-central1-hunters-2026.cloudfunctions.net/getPlayers"};
 
     let playerDB = [];
     let selectedPlayers = [];
@@ -636,7 +636,7 @@
 
       try {
         // 2. 관리자 비밀번호 검증
-        const valid = await fetch("https://checkpassword-2guymqucma-uc.a.run.app", {
+        const valid = await fetch("https://us-central1-hunters-2026.cloudfunctions.net/checkPassword", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password: pw })
@@ -648,7 +648,7 @@
         }
 
         // 3. 기존 오더 중복 확인
-        const exists = await fetch("https://orderexists-2guymqucma-uc.a.run.app?name=" + encodeURIComponent(name)).then(r => r.json());
+        const exists = await fetch("https://us-central1-hunters-2026.cloudfunctions.net/orderExists?name=" + encodeURIComponent(name)).then(r => r.json());
         if (exists.exists && !confirm("이미 존재하는 오더입니다. 덮어쓸까요?")) {
           return;
         }
@@ -665,7 +665,7 @@
         };
 
         // 5. 서버에 오더 저장 요청
-        const res = await fetch("https://saveorder-2guymqucma-uc.a.run.app", {
+        const res = await fetch("https://us-central1-hunters-2026.cloudfunctions.net/saveOrder", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderName: name, payload })
@@ -698,7 +698,7 @@
       if (orderName) {
         document.getElementById('orderName').value = orderName;
         try {
-          const data = await fetch("https://getorder-2guymqucma-uc.a.run.app?name=" + encodeURIComponent(orderName)).then(r => r.json());
+          const data = await fetch("https://us-central1-hunters-2026.cloudfunctions.net/getOrder?name=" + encodeURIComponent(orderName)).then(r => r.json());
           if (data && data.payload) {
             selectedPlayers = data.payload.players ? data.payload.players.map(p => p.name) : [];
             positionAssignments = { ...positionAssignments, ...data.payload.positions };
