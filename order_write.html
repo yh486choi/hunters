@@ -526,7 +526,7 @@
       excludedPlayers = excludedPlayers.filter(n => n !== name);
       refreshAll();
     }
-    
+
     // 4. 선발 명단 렌더링 (생략 없는 전체 버전)
     function renderStartingTable() {
       const assignedPlayers = Object.values(positionAssignments).filter(Boolean);
@@ -605,69 +605,78 @@
     }
 
     function selectStarting(idx, name) {
-      // 1. 기존에 이 타순(idx)에 있던 선수 A 백업
-      const playerA = startingList[idx].name || (idx === 9 ? positionAssignments['P'] : '');
-      const nameB = name; // 새로 선택된 선수 B
+      // 1. 기존 타순 선수 A의 정보 최상단에서 완벽히 백업
+      const playerA_Name = (idx === 9) ? (positionAssignments['P'] || '') : (startingList[idx].name || '');
+      const pA = playerDB.find(x => x.name === playerA_Name);
+      const oldPosOfA = Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA_Name) || '';
 
+      const nameB = name; // 새로 선택된 선수 B
+      const pB = playerDB.find(x => x.name === nameB);
+      const targetIdx = startingList.findIndex((r, i) => i !== idx && r.name === nameB);
+      const oldPosOfB = Object.keys(positionAssignments).find(k => positionAssignments[k] === nameB) || '';
+
+      // [예외 처리] 빈 값(공백) 선택 시
       if (!nameB) {
         if (idx === 9) positionAssignments['P'] = '';
-        else {
-          const currentPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA);
-          if (currentPos) positionAssignments[currentPos] = '';
-        }
+        else if (oldPosOfA) positionAssignments[oldPosOfA] = '';
         startingList[idx] = { name: '', num: '', pos: '' };
         refreshAll();
         return;
       }
 
-      const pB = playerDB.find(x => x.name === nameB);
-      const targetIdx = startingList.findIndex((r, i) => i !== idx && r.name === nameB);
-
-      // B 선수가 이미 어떤 포지션을 맡고 있는지 확인
-      const oldPosOfB = Object.keys(positionAssignments).find(k => positionAssignments[k] === nameB);
-
-      // [핵심 로직 분기]
-      if (!oldPosOfB) {
-        /* 상황 1: B가 대기 명단 선수일 때 (포지션이 없음) */
-        // 기존 선수 A가 맡고 있던 포지션을 B가 승계합니다.
-        let targetPos = (idx === 9) ? 'P' : Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA);
-
-        if (targetPos) {
-          positionAssignments[targetPos] = nameB;
-        }
-
-        startingList[idx] = {
-          name: nameB,
-          num: pB ? pB.num : '',
-          pos: targetPos ? convertPosition(targetPos) : ''
-        };
-      }
-      else {
-        /* 상황 2: B가 이미 선발/포지션이 있는 선수일 때 */
-        // 타순만 교체하고, 각자 원래 가지고 있던 포지션은 그대로 유지합니다.
-        const pA = playerDB.find(x => x.name === playerA);
-        const posOfA = Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA) || '';
-
+      // [상황 1] 투수 행(idx 9) 전용 로직
+      if (idx === 9) {
         if (targetIdx !== -1) {
-          // B가 있던 타순에 A 배치 (A의 원래 포지션 유지)
-          startingList[targetIdx] = {
-            name: playerA || '',
-            num: pA ? pA.num : '',
-            pos: posOfA ? convertPosition(posOfA) : ''
-          };
+          if (playerA_Name && oldPosOfB) positionAssignments[oldPosOfB] = playerA_Name;
+          else if (oldPosOfB) positionAssignments[oldPosOfB] = '';
+          startingList[targetIdx].pos = oldPosOfB ? convertPosition(oldPosOfB) : '';
+        } else {
+          if (oldPosOfB && playerA_Name) {
+            positionAssignments[oldPosOfB] = playerA_Name;
+            const startIdxOfA = startingList.findIndex(r => r.name === playerA_Name);
+            if (startIdxOfA !== -1) startingList[startIdxOfA].pos = convertPosition(oldPosOfB);
+          } else if (oldPosOfB) {
+            positionAssignments[oldPosOfB] = '';
+          }
         }
+        positionAssignments['P'] = nameB;
+        startingList[9] = { name: nameB, num: pB ? pB.num : '', pos: '투수(P)' };
+      }
 
-        // 현재 타순(idx)에 B 배치 (B의 원래 포지션 유지)
-        startingList[idx] = {
-          name: nameB,
-          num: pB ? pB.num : '',
-          pos: convertPosition(oldPosOfB)
-        };
+      // [상황 2] 일반 타순(1~9번) 교체 로직
+      else {
+        if (targetIdx !== -1 && targetIdx !== 9) {
+          // 일반 타순 내 맞교환 (각자 포지션 유지)
+          startingList[targetIdx] = {
+            name: playerA_Name,
+            num: pA ? pA.num : '',
+            pos: oldPosOfA ? convertPosition(oldPosOfA) : ''
+          };
 
-        // 투수 행(idx 9)에 B를 넣은 경우 필드 데이터 동기화
-        if (idx === 9) {
-          if (posOfA && playerA) positionAssignments[posOfA] = playerA;
-          positionAssignments['P'] = nameB;
+          startingList[idx] = {
+            name: nameB,
+            num: pB ? pB.num : '',
+            pos: oldPosOfB ? convertPosition(oldPosOfB) : ''
+          };
+        } else {
+          // 대기 명단에서 선수를 새로 불러오거나, 투수 행의 선수와 교환할 때
+          if (targetIdx === -1 && oldPosOfB) {
+            // ⭐ [신규 반영] 대기 명단에 있던 선수가 이미 포지션을 가진 경우
+            // 수비 위치(DB)를 서로 덮어쓰지 않아, 두 선수 모두 기존 포지션이 유지됨
+            startingList[idx] = {
+              name: nameB,
+              num: pB ? pB.num : '',
+              pos: convertPosition(oldPosOfB)
+            };
+          } else {
+            // 포지션이 없는 순수 대기 선수일 경우: 기존 타자의 포지션 승계
+            if (oldPosOfA) positionAssignments[oldPosOfA] = nameB;
+            startingList[idx] = {
+              name: nameB,
+              num: pB ? pB.num : '',
+              pos: oldPosOfA ? convertPosition(oldPosOfA) : ''
+            };
+          }
         }
       }
 
