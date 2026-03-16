@@ -54,6 +54,7 @@
       <table class="table_common">
         <thead>
           <tr>
+            <th style="width: 30px;">No</th>
             <th style="width: 80px;">선수명</th>
             <th style="width: 40px;"></th>
           </tr>
@@ -81,63 +82,63 @@
       </div>
 
       <div id='middleWrapper'>
-          <div id='areaC1'>
-            <table class="table_common">
-              <caption style='font-weight:bolder;'>선발 명단</caption>
-              <thead>
-                <tr>
-                  <th style="width: 25px;">타순</th>
-                  <th style="width: 90px;">선수명</th>
-                  <th style="width: 100px;">포지션</th>
-                </tr>
-              </thead>
-              <tbody id='startingTableBody'></tbody>
-            </table>
-          </div>
+        <div id='areaC1'>
+          <table class="table_common">
+            <caption style='font-weight:bolder;'>선발 명단</caption>
+            <thead>
+              <tr>
+                <th style="width: 25px;">타순</th>
+                <th style="width: 90px;">선수명</th>
+                <th style="width: 100px;">포지션</th>
+              </tr>
+            </thead>
+            <tbody id='startingTableBody'></tbody>
+          </table>
+        </div>
 
 
-          <div id='areaC2'>
-            <table class="table_common">
-              <caption style='font-weight:bolder;'>대기 명단</caption>
-              <thead>
-                <tr>
-                  <th style="width: 80px;">선수명</th>
-                </tr>
-              </thead>
-              <tbody id='waitingTableBody'>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div id='areaC2'>
+          <table class="table_common">
+            <caption style='font-weight:bolder;'>대기 명단</caption>
+            <thead>
+              <tr>
+                <th style="width: 80px;">선수명</th>
+              </tr>
+            </thead>
+            <tbody id='waitingTableBody'>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -147,11 +148,11 @@
 
   </div>
 
-<script>
+  <script>
     // order_write.html 내의 <script> 안에 추가
     async function captureOrder() {
       const orderNameInput = document.getElementById('orderName').value.trim();
-      
+
       // 1. 현재 시간 포맷팅 (YYMMDDHHMMSS)
       const now = new Date();
       const yy = String(now.getFullYear()).slice(2);
@@ -165,46 +166,46 @@
       // 2. 파일명 조합 (예: order_260303_260303230800.jpg)
       const baseName = orderNameInput ? `order_${orderNameInput}` : 'order_capture';
       const filename = `${baseName}${timeString}.jpg`;
-      
+
       showLoading("이미지 생성 중...");
-      
+
       const originalTarget = document.getElementById("orderViewPanel");
       const clone = originalTarget.cloneNode(true);
-      
+
       clone.style.position = 'absolute';
       clone.style.top = '-9999px';
       clone.style.left = '-9999px';
       // 배경색이 투명하게 나오지 않도록 body의 배경색을 가져와 깔아줍니다
       clone.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
       document.body.appendChild(clone);
-      
+
       try {
         const originalSelects = originalTarget.querySelectorAll('select');
         const cloneSelects = clone.querySelectorAll('select');
-        
+
         for (let i = 0; i < originalSelects.length; i++) {
           const origSel = originalSelects[i];
           const clonedSel = cloneSelects[i];
-          
+
           let selectedText = "";
           if (origSel.selectedIndex >= 0) {
             selectedText = origSel.options[origSel.selectedIndex].text;
           }
           if (selectedText.trim() === '') selectedText = '';
-          
+
           // span 대신 div를 사용해야 박스 형태의 위치(absolute)와 크기를 잡기 수월합니다
           const textDiv = document.createElement('div');
           textDiv.textContent = selectedText;
-          
+
           // ⭐ 핵심: CSS 위치 속성을 유지하기 위해 원본의 id와 class를 그대로 복사!
           textDiv.id = origSel.id;
           textDiv.className = origSel.className;
-          
+
           // 기존 select 박스의 크기와 텍스트 중앙 정렬 스타일 복사
           textDiv.style.display = 'flex';
           textDiv.style.alignItems = 'center';
           textDiv.style.justifyContent = 'center';
-          
+
           // 치환
           clonedSel.parentNode.replaceChild(textDiv, clonedSel);
         }
@@ -214,7 +215,7 @@
         link.href = canvas.toDataURL("image/jpeg", 0.92);
         link.download = filename;
         link.click();
-        
+
       } catch (err) {
         alert("이미지 캡처 오류: " + err.message);
       } finally {
@@ -232,15 +233,22 @@
       document.getElementById("loadingOverlay").style.display = "none";
     }
 
-    const API = { getPlayers: "https://us-central1-hunters-2026.cloudfunctions.net/getPlayers"};
+    const API = { getPlayers: "https://us-central1-hunters-2026.cloudfunctions.net/getPlayers" };
 
     let playerDB = [];
     let selectedPlayers = [];
     let positionAssignments = {
       CF: '', LF: '', RF: '', SS: '', '2B': '', '3B': '', P: '', C: '', DH: '', '1B': ''
     };
-    let startingList = Array(10).fill().map(() => ({ name: '', pos: '' }));
-    
+
+    let startingList = [
+      { name: '', num: '', pos: '' }, { name: '', num: '', pos: '' },
+      { name: '', num: '', pos: '' }, { name: '', num: '', pos: '' },
+      { name: '', num: '', pos: '' }, { name: '', num: '', pos: '' },
+      { name: '', num: '', pos: '' }, { name: '', num: '', pos: '' },
+      { name: '', num: '', pos: '' }, { name: '', num: '', pos: '' }
+    ];
+
     // 새로 추가된 상태: 대기 명단에서 취소선 처리된 선수 목록
     let excludedPlayers = [];
 
@@ -304,9 +312,14 @@
     function renderPlayerTable() {
       const tbody = document.getElementById('playerTableBody');
       tbody.innerHTML = '';
-      selectedPlayers.slice().sort((a, b) => a.localeCompare(b, 'ko')).forEach(name => {
+
+      // 정렬된 배열 뒤에 index(idx) 매개변수를 추가합니다.
+      selectedPlayers.slice().sort((a, b) => a.localeCompare(b, 'ko')).forEach((name, idx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${nameWithNum(name)}</td><td><button class='buttonStyles' onclick='removePlayer("${name}")'>삭제</button></td>`;
+        tr.innerHTML = `
+          <td>${idx + 1}</td> <td>${nameWithNum(name)}</td>
+          <td><button class='buttonStyles' onclick='removePlayer("${name}")'>삭제</button></td>
+        `;
         tbody.appendChild(tr);
       });
     }
@@ -318,8 +331,8 @@
         selectedPlayers.push(name);
         refreshAll();
         // 추가 후 select box 초기화
-        if(selectElement.options.length > 0) {
-          selectElement.selectedIndex = 0; 
+        if (selectElement.options.length > 0) {
+          selectElement.selectedIndex = 0;
         }
       }
     }
@@ -355,99 +368,310 @@
       });
     }
 
-    function updatePosition(pos, name) {
-      // 1. 기존 선수 확인 및 타순에서 제거
-      const oldPlayer = positionAssignments[pos];
-      if (oldPlayer && oldPlayer !== name) {
-        const oldPlayerIndex = startingList.findIndex(r => r.name === oldPlayer);
-        if (oldPlayerIndex !== -1) {
-          startingList[oldPlayerIndex] = { name: '', num: '', pos: '' };
+    function updatePositionBySelect(idx, pos) {
+      const nameA = startingList[idx].name;
+      if (!nameA) return;
+
+      // 1. 선택한 포지션(pos)을 이미 차지하고 있는 다른 선수 B가 있는지 확인
+      const nameB = positionAssignments[pos];
+
+      // 2. 선수 A가 원래 가지고 있던 포지션(oldPosOfA) 찾기
+      const oldPosOfA = Object.keys(positionAssignments).find(k => positionAssignments[k] === nameA);
+
+      if (nameB && nameB !== nameA) {
+        if (oldPosOfA) {
+          // 선수 A의 이전 흔적을 지워 간섭 차단
+          positionAssignments[oldPosOfA] = '';
+
+          // 3. 선수 B를 A의 이전 위치로 이동 (완전 스왑)
+          positionAssignments[oldPosOfA] = nameB;
+
+          // 선발 명단 데이터(startingList)에서도 B의 포지션 텍스트 동기화
+          const idxOfB = startingList.findIndex(r => r.name === nameB);
+          if (idxOfB !== -1) {
+            startingList[idxOfB].pos = convertPosition(oldPosOfA);
+          }
+        } else {
+          // A가 원래 포지션이 없었다면 B는 할당 해제
+          for (const key in positionAssignments) {
+            if (positionAssignments[key] === nameB && key !== pos) {
+              positionAssignments[key] = '';
+            }
+          }
+          const idxOfB = startingList.findIndex(r => r.name === nameB);
+          if (idxOfB !== -1) {
+            startingList[idxOfB].pos = '';
+          }
         }
       }
 
-      // 2. 새 선수 이전 포지션 비우기
-      for (const key in positionAssignments) { 
-        if (key !== pos && positionAssignments[key] === name) {
-          positionAssignments[key] = '';
-        } 
+      // [추가 로직] 투수(P)로 변경되는 경우, 투수 행(10번째) 데이터도 동기화
+      if (pos === 'P') {
+        startingList[9] = {
+          name: nameA,
+          num: playerDB.find(x => x.name === nameA)?.num || '',
+          pos: '투수(P)'
+        };
       }
-      
-      // 3. 새 포지션 할당 및 대기명단 취소선 해제 (경기에 투입되므로)
-      positionAssignments[pos] = name;
-      if (name) {
-        excludedPlayers = excludedPlayers.filter(n => n !== name);
-      }
-      
-      refreshAll();
+
+      // 4. A에게 새 포지션 할당
+      updatePosition(pos, nameA);
     }
-    
+
     function setupStartingTable() {
       const tbody = document.getElementById('startingTableBody');
       tbody.innerHTML = '';
       for (let i = 0; i < 10; i++) {
         const label = i === 9 ? '투수' : (i + 1);
         const tr = document.createElement('tr');
+
         if (i === 9) {
-          tr.innerHTML = `<td>${label}</td><td><span id='start_name_${i}'></span></td><td id='start_pos_${i}'></td>`;
+          // 투수는 선수명만 드롭다운, 포지션은 텍스트(span)로 고정
+          tr.innerHTML = `
+        <td>${label}</td>
+        <td><select id='start_sel_${i}' style='width:90px' onchange='selectStarting(${i}, this.value)'></select></td>
+        <td id='start_pos_txt_9' style='font-size: 12px; text-align: center;'></td>
+      `;
         } else {
-          tr.innerHTML = `<td>${label}</td><td><select id='start_sel_${i}' style='width:90px' onchange='selectStarting(${i}, this.value)'></select></td><td id='start_pos_${i}'></td>`;
+          // 1~9번 타자는 선수와 포지션 모두 드롭다운
+          tr.innerHTML = `
+        <td>${label}</td>
+        <td><select id='start_sel_${i}' style='width:90px' onchange='selectStarting(${i}, this.value)'></select></td>
+        <td><select id='start_pos_sel_${i}' style='width:105px; font-size:12px;' onchange='updatePositionBySelect(${i}, this.value)'></select></td>
+      `;
         }
         tbody.appendChild(tr);
       }
     }
 
+    function updatePosition(pos, name) {
+      if (!name) {
+        const oldPlayer = positionAssignments[pos];
+        if (oldPlayer) {
+          const idx = startingList.findIndex(r => r.name === oldPlayer);
+          if (idx !== -1) startingList[idx].pos = '';
+        }
+        positionAssignments[pos] = '';
+        refreshAll();
+        return;
+      }
+
+      const oldPlayerB = positionAssignments[pos]; // 기존 점유자 B (ex: 기존 투수)
+      const oldPosOfA = Object.keys(positionAssignments).find(k => positionAssignments[k] === name && k !== pos); // 이동할 선수 A의 이전 위치
+
+      if (oldPlayerB && oldPlayerB !== name) {
+        const startIdxOfB = startingList.findIndex(r => r.name === oldPlayerB);
+        const startIdxOfA = startingList.findIndex(r => r.name === name);
+
+        // [1] 선수 A가 이미 타순에 있는 경우: 타순 위치 고정
+        if (startIdxOfA !== -1) {
+          startingList[startIdxOfA].pos = convertPosition(pos);
+
+          // [2] 상대방 B가 타순에 있는 경우만 스왑 발생
+          if (startIdxOfB !== -1) {
+            startingList[startIdxOfB].pos = oldPosOfA ? convertPosition(oldPosOfA) : '';
+            if (oldPosOfA) {
+              positionAssignments[oldPosOfA] = oldPlayerB;
+            }
+          } else {
+            // [핵심 수정] B가 타순에 없다면 모든 포지션 할당을 초기화 (대기 명단으로)
+            for (const key in positionAssignments) {
+              if (positionAssignments[key] === oldPlayerB) {
+                positionAssignments[key] = '';
+              }
+            }
+            // A의 이전 자리도 비워줌 (B가 가지 않으므로)
+            if (oldPosOfA) positionAssignments[oldPosOfA] = '';
+          }
+        }
+        else if (startIdxOfB !== -1) {
+          // [3] 선수 A가 대기 명단에서 온 경우: 기존 선수 B의 타순을 승계
+          const pA = playerDB.find(x => x.name === name);
+          startingList[startIdxOfB] = {
+            name: name,
+            num: pA ? pA.num : '',
+            pos: convertPosition(pos)
+          };
+          if (oldPosOfA) positionAssignments[oldPosOfA] = '';
+        } else {
+          // [4] 둘 다 타순에 없는 경우: B의 흔적 삭제
+          for (const key in positionAssignments) {
+            if (positionAssignments[key] === oldPlayerB) positionAssignments[key] = '';
+          }
+        }
+
+        // [투수 전용 데이터 동기화 보정]
+        if (pos === 'P') {
+          const pA = playerDB.find(x => x.name === name);
+          startingList[9] = { name: name, num: pA ? pA.num : '', pos: '투수(P)' };
+        }
+        else if (oldPosOfA === 'P') {
+          // A가 투수였고 다른 곳으로 갈 때, 타순에 없는 B가 투수 자리에 남지 않도록 초기화
+          if (startIdxOfB === -1) startingList[9] = { name: '', num: '', pos: '' };
+        }
+      } else {
+        // 일반적인 이동 처리
+        if (oldPosOfA) positionAssignments[oldPosOfA] = '';
+        const startIdxOfA = startingList.findIndex(r => r.name === name);
+        if (startIdxOfA !== -1) startingList[startIdxOfA].pos = convertPosition(pos);
+
+        if (pos === 'P') {
+          const pA = playerDB.find(x => x.name === name);
+          startingList[9] = { name: name, num: pA ? pA.num : '', pos: '투수(P)' };
+        }
+      }
+
+      // 최종 위치 확정
+      positionAssignments[pos] = name;
+      excludedPlayers = excludedPlayers.filter(n => n !== name);
+      refreshAll();
+    }
+    
+    // 4. 선발 명단 렌더링 (생략 없는 전체 버전)
     function renderStartingTable() {
       const assignedPlayers = Object.values(positionAssignments).filter(Boolean);
+      const posOptions = [
+        { v: 'P', t: '투수(P)' }, { v: 'C', t: '포수(C)' }, { v: '1B', t: '1루수(1B)' },
+        { v: '2B', t: '2루수(2B)' }, { v: '3B', t: '3루수(3B)' }, { v: 'SS', t: '유격수(SS)' },
+        { v: 'LF', t: '좌익수(LF)' }, { v: 'CF', t: '중견수(CF)' }, { v: 'RF', t: '우익수(RF)' }, { v: 'DH', t: '지명타자(DH)' }
+      ];
+
+      const assignedSorted = assignedPlayers.slice().sort((a, b) => a.localeCompare(b, 'ko'));
+      const unassignedSorted = selectedPlayers
+        .filter(name => !assignedPlayers.includes(name))
+        .sort((a, b) => a.localeCompare(b, 'ko'));
+      const sortedDropdownPlayers = [...assignedSorted, ...unassignedSorted];
+
       for (let i = 0; i < 10; i++) {
-        if (i === 9) {
-          const pitcher = positionAssignments['P'];
-          const span = document.getElementById('start_name_9');
-          const tdPos = document.getElementById('start_pos_9');
-          if (pitcher) {
-            const p = playerDB.find(x => x.name === pitcher);
-            startingList[9] = { name: pitcher, num: p.num, pos: convertPosition('P') };
-            span.textContent = nameWithNum(pitcher); tdPos.textContent = convertPosition('P');
-          } else {
-            startingList[9] = { name: '', num: '', pos: '' };
-            span.textContent = ''; tdPos.textContent = '';
-          }
-          continue;
+        const pSel = document.getElementById(`start_sel_${i}`);
+        if (!pSel) continue;
+
+        // [1] 선수 드롭다운 업데이트
+        pSel.innerHTML = '<option value=""></option>';
+        let currentName = (startingList[i] && startingList[i].name) ? startingList[i].name : '';
+
+        // 투수 행 전용: 이름이 없으면 P 포지션에 할당된 선수를 기본값으로 시도
+        if (i === 9 && !currentName) {
+          currentName = positionAssignments['P'] || '';
         }
-        const sel = document.getElementById(`start_sel_${i}`);
-        sel.innerHTML = '';
-        const blank = document.createElement('option');
-        blank.value = ''; blank.textContent = ' '; blank.selected = true;
-        sel.appendChild(blank);
-        let selectedName = (startingList[i] && assignedPlayers.includes(startingList[i].name)) ? startingList[i].name : '';
-        let hasSelected = false;
-        assignedPlayers.forEach(name => {
+
+        sortedDropdownPlayers.forEach(name => {
           const p = playerDB.find(x => x.name === name);
           const opt = document.createElement('option');
-          opt.value = name; opt.textContent = `${name}(${p.num})`;
-          const alreadyUsed = startingList.slice(0, 9).some(r => r.name === name);
-          if (alreadyUsed && selectedName !== name) { opt.style.background = '#d0d0d0'; opt.style.color = '#555'; }
-          if (selectedName === name) { opt.selected = true; hasSelected = true; }
-          sel.appendChild(opt);
+          opt.value = name;
+          opt.textContent = `${name}(${p ? p.num : ''})`;
+          if (currentName === name) opt.selected = true;
+          pSel.appendChild(opt);
         });
-        if (!hasSelected) sel.selectedIndex = 0;
-        const row = startingList[i];
-        if (!row.name) { row.pos = ""; document.getElementById(`start_pos_${i}`).textContent = ""; continue; }
-        const assignedPosKey = Object.entries(positionAssignments).find(([_, v]) => v === row.name)?.[0];
-        row.pos = assignedPosKey ? convertPosition(assignedPosKey) : "";
-        document.getElementById(`start_pos_${i}`).textContent = row.pos;
+
+        // [2] 포지션 처리 (타순은 드롭다운, 투수는 텍스트)
+        const currentPosCode = Object.keys(positionAssignments).find(k => positionAssignments[k] === currentName);
+
+        if (i === 9) {
+          // 투수 행: 텍스트로 표기
+          const posTxt = document.getElementById('start_pos_txt_9');
+          posTxt.textContent = currentName ? '투수(P)' : '';
+        } else {
+          // 1~9번 타자: 드롭다운 업데이트 및 초기 공백 보장
+          const posSel = document.getElementById(`start_pos_sel_${i}`);
+          if (posSel) {
+            posSel.innerHTML = '<option value=""></option>';
+            posOptions.forEach(opt => {
+              const o = document.createElement('option');
+              o.value = opt.v; o.textContent = opt.t;
+              if (currentName && currentPosCode === opt.v) o.selected = true;
+              posSel.appendChild(o);
+            });
+            if (!currentPosCode) posSel.selectedIndex = 0;
+          }
+        }
+
+        // [3] 데이터 동기화
+        if (currentName) {
+          const p = playerDB.find(x => x.name === currentName);
+          const finalPosCode = (i === 9) ? 'P' : (currentPosCode || '');
+          startingList[i] = {
+            name: currentName,
+            num: p ? p.num : '',
+            pos: finalPosCode ? convertPosition(finalPosCode) : ""
+          };
+          if (i === 9 && positionAssignments['P'] !== currentName) {
+            positionAssignments['P'] = currentName;
+          }
+        } else {
+          startingList[i] = { name: '', num: '', pos: '' };
+        }
       }
     }
 
     function selectStarting(idx, name) {
-      startingList.forEach((r, i) => { if (i !== idx && r.name === name) startingList[i] = { name: '', num: '', pos: '' }; });
-      if (!name) { startingList[idx] = { name: '', num: '', pos: '' }; }
-      else {
-        const p = playerDB.find(x => x.name === name);
-        const foundPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
-        startingList[idx] = { name, num: p.num, pos: convertPosition(foundPos) };
-        // 선발에 투입되면 취소선 명단에서 제거
-        excludedPlayers = excludedPlayers.filter(n => n !== name);
+      // 1. 기존에 이 타순(idx)에 있던 선수 A 백업
+      const playerA = startingList[idx].name || (idx === 9 ? positionAssignments['P'] : '');
+      const nameB = name; // 새로 선택된 선수 B
+
+      if (!nameB) {
+        if (idx === 9) positionAssignments['P'] = '';
+        else {
+          const currentPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA);
+          if (currentPos) positionAssignments[currentPos] = '';
+        }
+        startingList[idx] = { name: '', num: '', pos: '' };
+        refreshAll();
+        return;
       }
+
+      const pB = playerDB.find(x => x.name === nameB);
+      const targetIdx = startingList.findIndex((r, i) => i !== idx && r.name === nameB);
+
+      // B 선수가 이미 어떤 포지션을 맡고 있는지 확인
+      const oldPosOfB = Object.keys(positionAssignments).find(k => positionAssignments[k] === nameB);
+
+      // [핵심 로직 분기]
+      if (!oldPosOfB) {
+        /* 상황 1: B가 대기 명단 선수일 때 (포지션이 없음) */
+        // 기존 선수 A가 맡고 있던 포지션을 B가 승계합니다.
+        let targetPos = (idx === 9) ? 'P' : Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA);
+
+        if (targetPos) {
+          positionAssignments[targetPos] = nameB;
+        }
+
+        startingList[idx] = {
+          name: nameB,
+          num: pB ? pB.num : '',
+          pos: targetPos ? convertPosition(targetPos) : ''
+        };
+      }
+      else {
+        /* 상황 2: B가 이미 선발/포지션이 있는 선수일 때 */
+        // 타순만 교체하고, 각자 원래 가지고 있던 포지션은 그대로 유지합니다.
+        const pA = playerDB.find(x => x.name === playerA);
+        const posOfA = Object.keys(positionAssignments).find(k => positionAssignments[k] === playerA) || '';
+
+        if (targetIdx !== -1) {
+          // B가 있던 타순에 A 배치 (A의 원래 포지션 유지)
+          startingList[targetIdx] = {
+            name: playerA || '',
+            num: pA ? pA.num : '',
+            pos: posOfA ? convertPosition(posOfA) : ''
+          };
+        }
+
+        // 현재 타순(idx)에 B 배치 (B의 원래 포지션 유지)
+        startingList[idx] = {
+          name: nameB,
+          num: pB ? pB.num : '',
+          pos: convertPosition(oldPosOfB)
+        };
+
+        // 투수 행(idx 9)에 B를 넣은 경우 필드 데이터 동기화
+        if (idx === 9) {
+          if (posOfA && playerA) positionAssignments[posOfA] = playerA;
+          positionAssignments['P'] = nameB;
+        }
+      }
+
+      excludedPlayers = excludedPlayers.filter(n => n !== nameB);
       refreshAll();
     }
 
@@ -465,15 +689,15 @@
     function renderWaitingTable() {
       const tbody = document.getElementById('waitingTableBody');
       const rows = Array.from(tbody.querySelectorAll('tr'));
-      
+
       const used = startingList.map(r => r.name).filter(Boolean);
       // 순수 대기자 목록
       const allWaiting = selectedPlayers.filter(n => !used.includes(n));
-      
+
       // 취소선 없는 사람과 있는 사람으로 분리 후 각각 정렬
       const activeWaiting = allWaiting.filter(n => !excludedPlayers.includes(n)).sort((a, b) => a.localeCompare(b, 'ko'));
       const inactiveWaiting = allWaiting.filter(n => excludedPlayers.includes(n)).sort((a, b) => a.localeCompare(b, 'ko'));
-      
+
       // 두 배열을 합침 (활성 선수가 위, 취소선 선수가 아래)
       const sortedWaitingList = [...activeWaiting, ...inactiveWaiting];
 
@@ -482,35 +706,35 @@
         const tr = document.createElement("tr"); tr.innerHTML = "<td></td>"; tbody.appendChild(tr); rows.push(tr);
       }
       while (rows.length > totalNeeded) { tbody.removeChild(rows.pop()); }
-      
+
       for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]; 
-        
+        const row = rows[i];
+
         // 기존 클래스 및 이벤트 초기화
         row.className = "";
         row.onclick = null;
         row.style.cursor = 'default';
-        
+
         const cell = row.querySelector("td");
         const name = sortedWaitingList[i];
-        
+
         if (name) {
           const assignedPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
           if (assignedPos) row.classList.add("position-selected");
-          
+
           // 취소선 처리
           if (excludedPlayers.includes(name)) {
             row.classList.add("excluded-player");
           }
-          
+
           cell.textContent = nameWithNum(name);
-          
+
           // 클릭 이벤트 추가
           row.style.cursor = 'pointer';
           row.onclick = () => toggleExcluded(name);
-          
-        } else { 
-          cell.textContent = ""; 
+
+        } else {
+          cell.textContent = "";
         }
       }
     }
@@ -577,16 +801,16 @@
     }
 
     let pendingOutfieldPlayer = null;
-    
+
     function onAbilityClick(name, posKey, e) {
       const currentPos = Object.keys(positionAssignments).find(k => positionAssignments[k] === name);
 
       if (posKey === 'of') {
         if (currentPos && ['CF', 'LF', 'RF'].includes(currentPos)) {
-          updatePosition(currentPos, ''); 
+          updatePosition(currentPos, '');
           return;
         }
-        
+
         e.stopPropagation();
         pendingOutfieldPlayer = name;
         const popup = document.getElementById("outfieldPopup");
@@ -594,7 +818,7 @@
         popup.style.display = "block";
         return;
       }
-      
+
       const posMap = { p: 'P', c: 'C', '1b': '1B', '2b': '2B', '3b': '3B', ss: 'SS' };
       const targetPos = posMap[posKey];
 
@@ -607,10 +831,10 @@
 
     function selectOutfieldPosition(posCode) {
       if (pendingOutfieldPlayer) {
-        updatePosition(posCode, pendingOutfieldPlayer); 
+        updatePosition(posCode, pendingOutfieldPlayer);
       }
-      pendingOutfieldPlayer = null; 
-      closeOutfieldPopup(); 
+      pendingOutfieldPlayer = null;
+      closeOutfieldPopup();
     }
 
     function closeOutfieldPopup() { document.getElementById("outfieldPopup").style.display = "none"; }
@@ -687,7 +911,7 @@
         hideLoading();
       }
     }
-    
+
     window.onload = async () => {
       applySavedTheme();
       await loadPlayerDB();
@@ -704,8 +928,8 @@
             positionAssignments = { ...positionAssignments, ...data.payload.positions };
             startingList = Array.isArray(data.payload.startingList) ? [...data.payload.startingList] : Array(10).fill().map(() => ({ name: '', pos: '' }));
             // 저장된 취소선 데이터가 있으면 불러오기
-            if(data.payload.excludedPlayers) {
-                excludedPlayers = [...data.payload.excludedPlayers];
+            if (data.payload.excludedPlayers) {
+              excludedPlayers = [...data.payload.excludedPlayers];
             }
             refreshAll();
           }
