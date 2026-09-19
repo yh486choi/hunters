@@ -1,1 +1,5 @@
 firebase/functions/service-account.json
+node_modules/
+firebase/functions-v2/service-account.json
+.env
+firebase/*debug*.log

@@ -5,20 +5,20 @@ import {
 import { READ_API_BASE, WRITE_API_BASE, DEMO_MODE } from './config.js';
 import { downloadOrderImage } from './capture.js';
 import { saveDraft, loadDraft, clearDraft } from './draft-store.js';
-import { ABILITY_FIELDS, HAND_FIELDS, normalizeRoster } from './player-roster.js';
+import { setupRosterEditor } from './roster-editor.js';
 
 const $ = id => document.getElementById(id);
 const coords = { CF:[50,16], LF:[18,28], RF:[82,28], SS:[33,48], '2B':[65,48], '3B':[18,67], '1B':[82,67], P:[50,69], C:[50,87], DH:[84,88] };
 const abilities = { P:'p', C:'c', '1B':'1b', '2B':'2b', '3B':'3b', SS:'ss', LF:'of', CF:'of', RF:'of' };
 let orders = [];
 let roster = [];
-let editingPlayerName = null;
+
 let draft = createOrder();
 let currentName = '';
 let currentSavedAt = '';
 let view = 'home';
 let sheetPosition = '';
-let rosterSort = { field:'name', direction:1 };
+
 
 function status(message = '', error = false) {
   $('status').textContent = message;
@@ -94,47 +94,6 @@ function playerAbilityText(player) {
   const secondary = Object.entries(names).filter(([key]) => Number(player[key]) === 1).map(([,label]) => label);
   return [main.length ? `주 ${main.join(' · ')}` : '', secondary.length ? `부 ${secondary.join(' · ')}` : ''].filter(Boolean).join(' / ') || '포지션 정보 없음';
 }
-function renderRoster() {
-  const query=$('playerSearch').value.trim().toLowerCase(); const container=$('playerList'); container.replaceChildren();
-  const fields=[['name','\uC774\uB984'],['num','\uBC30\uBC88'],...HAND_FIELDS.map(([key,label])=>[key,label]),...ABILITY_FIELDS.map(([key,label])=>[key,label])];
-  const visible=roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>{ const av=a[rosterSort.field]??'', bv=b[rosterSort.field]??''; const numeric=rosterSort.field!=='name'; const result=numeric?(Number(av||0)-Number(bv||0)):String(av).localeCompare(String(bv),'ko',{numeric:true}); return (result||a.name.localeCompare(b.name,'ko'))*rosterSort.direction; });
-  const table=document.createElement('table'); table.className='player-admin-table'; const thead=document.createElement('thead'); const headRow=document.createElement('tr');
-  fields.push(['actions','\uAD00\uB9AC']); fields.forEach(([field,label])=>{ const th=document.createElement('th'); if(field==='actions'){ th.textContent=label; } else { const button=document.createElement('button'); button.type='button'; button.className='table-sort-button'; button.textContent=label+' '+(rosterSort.field===field?(rosterSort.direction===1?'▲':'▼'):'↕'); button.addEventListener('click',()=>{ if(rosterSort.field===field)rosterSort.direction*=-1; else {rosterSort.field=field;rosterSort.direction=1;} renderRoster(); }); th.append(button); } headRow.append(th); }); thead.append(headRow); table.append(thead);
-  const tbody=document.createElement('tbody'); visible.forEach(player=>{ const row=document.createElement('tr'); const name=document.createElement('td'); name.textContent=player.name; row.append(name); const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
-    for(const [key] of HAND_FIELDS){ const cell=document.createElement('td'); cell.textContent=player[key]==='R'?'\uC6B0':player[key]==='L'?'\uC88C':'-'; row.append(cell); }
-    for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC':Number(player[key])===1?'\uBD80':'-'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
-    const actions=document.createElement('td'); actions.className='table-actions'; const edit=document.createElement('button'); edit.type='button'; edit.className='text-button'; edit.textContent='\uC218\uC815'; edit.disabled=!WRITE_API_BASE; edit.addEventListener('click',()=>openPlayerForm(player)); const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent='\uC0AD\uC81C'; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deletePlayer(player.name)); actions.append(edit,remove); row.append(actions); tbody.append(row); });
-  table.append(tbody); container.append(table);
-}
-function openPlayerForm(player = null) {
-  editingPlayerName = player?.name ?? null;
-  $('playerFormTitle').textContent = player ? '선수 수정' : '선수 추가';
-  $('editPlayerName').value = player?.name ?? '';
-  $('editPlayerNumber').value = player?.num ?? '';
-  const fields = $('playerAbilityFields'); fields.replaceChildren();
-  for (const [key, label] of ABILITY_FIELDS) {
-    const wrapper = document.createElement('label'); wrapper.textContent = label;
-    const select = document.createElement('select'); select.name = key;
-    [['0','-'],['1','부'],['2','주']].forEach(([value, label]) => select.add(new Option(label,value)));
-    select.value = String(player?.[key] ?? '0');
-    wrapper.append(select); fields.append(wrapper);
-  }
-  const handFields = $('playerHandFields'); handFields.replaceChildren();
-  for (const [key, label] of HAND_FIELDS) { const wrapper=document.createElement('label'); wrapper.textContent=label; const select=document.createElement('select'); select.name=key; [['','-'],['R','\uC6B0'],['L','\uC88C']].forEach(([value,text])=>select.add(new Option(text,value))); select.value=String(player?.[key] ?? ''); wrapper.append(select); handFields.append(wrapper); }
-  $('playerForm').hidden = false;
-  $('editPlayerName').focus();
-}
-function closePlayerForm() { $('playerForm').hidden = true; editingPlayerName = null; }
-async function savePlayer(event) {
-  event.preventDefault(); const candidate={name:$('editPlayerName').value.trim(),num:$('editPlayerNumber').value.trim()};
-  for(const [key] of ABILITY_FIELDS) candidate[key]=$('playerAbilityFields').querySelector('[name="'+key+'"]').value;
-  for(const [key] of HAND_FIELDS) candidate[key]=$('playerHandFields').querySelector('[name="'+key+'"]').value;
-  let updated; try { updated=normalizeRoster(editingPlayerName?roster.map(player=>player.name===editingPlayerName?candidate:player):[...roster,candidate]); } catch(error){ return status(error.message,true); }
-  const password=prompt('Admin password'); if(!password)return;
-  if(editingPlayerName&&editingPlayerName!==candidate.name&&!confirm('이름 변경 시 기존 오더도 함께 변경됩니다. 계속할까요?'))return;
-  $('savePlayerButton').disabled=true; try { if(editingPlayerName&&editingPlayerName!==candidate.name) await writeApi('renamePlayerV2',{oldName:editingPlayerName,newName:candidate.name,password}); await writeApi('updatePlayersV2',{players:updated,password}); roster=normalizeRoster(await readApi('getPlayers')); closePlayerForm(); renderRoster(); status('선수 목록을 저장했습니다.'); } catch(error){ status(error.message,true); } finally { $('savePlayerButton').disabled=false; }
-}
-async function deletePlayer(name){ if(!confirm(name+' 선수를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deletePlayerV2',{name,password}); roster=normalizeRoster(await readApi('getPlayers')); renderRoster(); status('선수를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 function displayName(name, state) {
   if (!name) return '';
   const player = state.players.find(p => p.name === name);
@@ -334,13 +293,8 @@ $('discardDraftButton').addEventListener('click', () => {
   try { clearDraft(localStorage); refreshDraftNotice(); status('작성 중이던 초안을 삭제했습니다.'); }
   catch { status('초안을 삭제하지 못했습니다. 브라우저 저장 공간 설정을 확인하세요.',true); }
 });
-$('playerSearch').addEventListener('input', renderRoster);
-$('playerSort')?.addEventListener('change', renderRoster);
+const rosterEditor = setupRosterEditor({ readApi, writeApi, status, writable:Boolean(WRITE_API_BASE), onSaved:players => { roster = players; } });
 $('changePasswordButton')?.addEventListener('click', changePassword);
-$('newPlayerButton').disabled = !WRITE_API_BASE;
-$('newPlayerButton').addEventListener('click', () => openPlayerForm());
-$('cancelPlayerButton').addEventListener('click', closePlayerForm);
-$('playerForm').addEventListener('submit', savePlayer);
 $('sheetSearch').addEventListener('input', renderSheet);
 $('closeSheet').addEventListener('click', closeSheet);
 $('sheetBackdrop').addEventListener('click', closeSheet);
@@ -366,7 +320,7 @@ Promise.allSettled([loadOrders().then(async () => {
   if (linkedOrder) await openOrder(linkedOrder);
 }),readApi('getPlayersV2').then(data => {
   if (!Array.isArray(data)) throw new Error('선수 목록 형식이 올바르지 않습니다.');
-  roster = normalizeRoster(data); renderRoster();
+  rosterEditor.load(data);
 })]).then(results => {
   const failed = results.filter(result => result.status === 'rejected');
   if (failed.length) status('운영 데이터를 불러오지 못했습니다. 네트워크 연결과 API 상태를 확인하세요.',true);

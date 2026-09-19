@@ -27,3 +27,18 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .player-ability-fields{grid-template-columns:repeat(7,minmax(84px,1fr));overflow-x:auto;gap:8px;padding-bottom:4px}.player-ability-fields label{min-width:0}.player-ability-fields select{width:100%}
 
 .player-hand-fields{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}.player-hand-fields label{display:grid;gap:5px;font-weight:700}.player-hand-fields select{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);padding:9px 12px}
+
+.player-admin-table-wrap,.player-form{min-width:0;max-width:100%}
+.roster-save-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.roster-save-bar p{margin:0;font-size:13px;color:var(--muted)}
+.roster-save-actions{display:flex;gap:8px;flex-shrink:0}
+.roster-edit-table{min-width:920px;table-layout:fixed}
+.roster-edit-table th,.roster-edit-table td{padding:8px 5px}
+.roster-edit-table th:first-child{width:130px}
+.roster-edit-table th:nth-child(2){width:75px}
+.roster-edit-table th:last-child{width:64px}
+.roster-edit-table input,.roster-edit-table select{width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);padding:6px;font-size:14px}
+.roster-edit-table input[data-field="num"]{text-align:center}
+.roster-edit-table tr.modified td{background:var(--blue-soft)}
+.roster-edit-table tr.modified td:first-child{box-shadow:inset 3px 0 var(--blue)}
+@media(max-width:720px){.roster-save-bar{flex-direction:column;align-items:stretch}.roster-save-actions{display:grid;grid-template-columns:1fr 1fr}.roster-edit-table th:first-child{width:110px}}

@@ -1,0 +1,9 @@
+{
+  "name": "hunters-2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js",
+    "test": "node --test test/*.test.js"
+  }
+}
