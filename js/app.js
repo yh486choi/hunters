@@ -67,20 +67,18 @@ function persistDraft() {
   }
 }
 function makeOrderButton(order) {
-  const button = document.createElement('button');
-  button.className = 'order-row';
-  button.type = 'button';
+  const row = document.createElement('div');
+  row.className = 'order-row';
+  const open = document.createElement('button'); open.type = 'button'; open.className = 'order-open';
   const title = document.createElement('span');
-  const strong = document.createElement('strong');
-  strong.textContent = order.orderName;
-  const small = document.createElement('small');
-  small.textContent = dateText(order.savedAt);
+  const strong = document.createElement('strong'); strong.textContent = order.orderName;
+  const small = document.createElement('small'); small.textContent = dateText(order.savedAt);
   title.append(strong, small);
-  const arrow = document.createElement('span');
-  arrow.textContent = '›';
-  button.append(title, arrow);
-  button.addEventListener('click', () => openOrder(order.orderName));
-  return button;
+  const arrow = document.createElement('span'); arrow.textContent = '��';
+  open.append(title, arrow); open.addEventListener('click', () => openOrder(order.orderName));
+  const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button danger-button'; remove.textContent = '����';
+  remove.disabled = !WRITE_API_BASE; remove.addEventListener('click', () => deleteOrder(order.orderName));
+  row.append(open, remove); return row;
 }
 function renderOrders() {
   for (const [id, list] of [['recentOrders',orders.slice(0,4)],['allOrders',orders]]) {
@@ -102,25 +100,26 @@ function playerAbilityText(player) {
 }
 function renderRoster() {
   const query = $('playerSearch').value.trim().toLowerCase();
-  const container = $('playerList');
-  container.replaceChildren();
-  roster.filter(p => p.name.toLowerCase().includes(query) || String(p.num).includes(query)).forEach(player => {
-    const card = document.createElement('div'); card.className = 'card player-card';
-    const number = document.createElement('span'); number.className = 'number'; number.textContent = player.num || '–';
-    const info = document.createElement('div');
-    const name = document.createElement('strong'); name.textContent = player.name;
-    const ability = document.createElement('small'); ability.textContent = playerAbilityText(player);
-    const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'text-button'; edit.textContent = '수정';
-    edit.disabled = !WRITE_API_BASE;
-    edit.addEventListener('click', () => openPlayerForm(player));
-    info.append(name, ability); card.append(number, info, edit); container.append(card);
-  });
+  const sort = $('playerSort')?.value || 'name';
+  const container = $('playerList'); container.replaceChildren();
+  roster.filter(p => p.name.toLowerCase().includes(query) || String(p.num).includes(query))
+    .slice().sort((a,b) => sort === 'num' ? String(a.num).localeCompare(String(b.num),'ko',{numeric:true}) || a.name.localeCompare(b.name,'ko') : a.name.localeCompare(b.name,'ko'))
+    .forEach(player => {
+      const card = document.createElement('div'); card.className = 'card player-card';
+      const number = document.createElement('span'); number.className = 'number'; number.textContent = player.num || '?';
+      const info = document.createElement('div');
+      const name = document.createElement('strong'); name.textContent = player.name;
+      const ability = document.createElement('small'); ability.textContent = playerAbilityText(player);
+      const actions = document.createElement('div'); actions.className = 'player-actions';
+      const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'text-button'; edit.textContent = '����'; edit.disabled = !WRITE_API_BASE; edit.addEventListener('click', () => openPlayerForm(player));
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button danger-button'; remove.textContent = '����'; remove.disabled = !WRITE_API_BASE; remove.addEventListener('click', () => deletePlayer(player.name));
+      actions.append(edit,remove); info.append(name,ability); card.append(number,info,actions); container.append(card);
+    });
 }
 function openPlayerForm(player = null) {
   editingPlayerName = player?.name ?? null;
   $('playerFormTitle').textContent = player ? '선수 수정' : '선수 추가';
   $('editPlayerName').value = player?.name ?? '';
-  $('editPlayerName').readOnly = Boolean(player);
   $('editPlayerNumber').value = player?.num ?? '';
   const fields = $('playerAbilityFields'); fields.replaceChildren();
   for (const [key, label] of ABILITY_FIELDS) {
@@ -140,22 +139,25 @@ async function savePlayer(event) {
   for (const [key] of ABILITY_FIELDS) candidate[key] = $('playerAbilityFields').querySelector('[name="' + key + '"]').value;
   let updated;
   try {
-    updated = normalizeRoster(editingPlayerName
-      ? roster.map(player => player.name === editingPlayerName ? candidate : player)
-      : [...roster,candidate]);
+    updated = normalizeRoster(editingPlayerName ? roster.map(player => player.name === editingPlayerName ? candidate : player) : [...roster,candidate]);
   } catch (error) { return status(error.message,true); }
-  const password = prompt('관리자 비밀번호를 입력하세요.');
-  if (!password) return;
+  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
+  if (editingPlayerName && editingPlayerName !== candidate.name && !confirm('�̸��� �����ϸ� ���� ������ ���� �̸��� �Բ� ����˴ϴ�. ����ұ��?')) return;
   $('savePlayerButton').disabled = true;
   try {
-    status('선수 목록을 저장하는 중입니다.');
+    status('���� ����� �����ϴ� ���Դϴ�.');
+    if (editingPlayerName && editingPlayerName !== candidate.name) await writeApi('renamePlayerV2',{ oldName:editingPlayerName, newName:candidate.name, password });
     await writeApi('updatePlayersV2',{ players:updated, password });
-    const refreshed = await readApi('getPlayers');
-    roster = normalizeRoster(refreshed);
-    closePlayerForm(); renderRoster();
-    status('선수 목록을 저장하고 다시 불러왔습니다.');
+    roster = normalizeRoster(await readApi('getPlayers'));
+    closePlayerForm(); renderRoster(); status('���� ����� �����ϰ� �ٽ� �ҷ��Խ��ϴ�.');
   } catch (error) { status(error.message,true); }
   finally { $('savePlayerButton').disabled = false; }
+}
+async function deletePlayer(name) {
+  if (!confirm(name + ' ������ �����ұ��? ���� �������� ��� ���̸� ������ �� �����ϴ�.')) return;
+  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
+  try { await writeApi('deletePlayerV2',{ name, password }); roster = normalizeRoster(await readApi('getPlayers')); renderRoster(); status('������ �����߽��ϴ�.'); }
+  catch (error) { status(error.message,true); }
 }
 function displayName(name, state) {
   if (!name) return '';
@@ -260,6 +262,12 @@ function renderSheet() {
       container.append(button);
     });
 }
+async function deleteOrder(name) {
+  if (!confirm(name + ' ������ �����ұ��?')) return;
+  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
+  try { await writeApi('deleteOrderV2',{ name, password }); orders = orders.filter(order => order.orderName !== name); renderOrders(); if (currentName === name) { currentName=''; currentSavedAt=''; draft=createOrder(); show('orders'); } status('������ �����߽��ϴ�.'); }
+  catch (error) { status(error.message,true); }
+}
 async function openOrder(name) {
   status('오더를 불러오는 중입니다.');
   try {
@@ -356,6 +364,8 @@ $('discardDraftButton').addEventListener('click', () => {
   catch { status('초안을 삭제하지 못했습니다. 브라우저 저장 공간 설정을 확인하세요.',true); }
 });
 $('playerSearch').addEventListener('input', renderRoster);
+$('playerSort')?.addEventListener('change', renderRoster);
+$('changePasswordButton')?.addEventListener('click', changePassword);
 $('newPlayerButton').disabled = !WRITE_API_BASE;
 $('newPlayerButton').addEventListener('click', () => openPlayerForm());
 $('cancelPlayerButton').addEventListener('click', closePlayerForm);
@@ -376,6 +386,13 @@ if (localStorage.getItem('hunters-theme') === 'dark') document.body.classList.ad
 if (DEMO_MODE) {
   $('environmentNotice').hidden = false;
   $('environmentNotice').textContent = '로컬 데모 데이터입니다. 저장 비밀번호: demo · 서버를 다시 시작하면 초기화됩니다.';
+}
+async function changePassword() {
+  const oldPassword = prompt('���� ������ ��й�ȣ�� �Է��ϼ���.'); if (!oldPassword) return;
+  const newPassword = prompt('�� ��й�ȣ�� �Է��ϼ���. (4�� �̻�)'); if (!newPassword) return;
+  const confirmPassword = prompt('�� ��й�ȣ�� �ٽ� �Է��ϼ���.'); if (newPassword !== confirmPassword) return status('�� ��й�ȣ�� ��ġ���� �ʽ��ϴ�.',true);
+  try { await writeApi('changePasswordV2',{ oldPassword, newPassword }); status('������ ��й�ȣ�� �����߽��ϴ�.'); }
+  catch (error) { status(error.message,true); }
 }
 $('saveButton').disabled = !WRITE_API_BASE;
 refreshDraftNotice();
