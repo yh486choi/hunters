@@ -5,7 +5,7 @@ import {
 import { READ_API_BASE, WRITE_API_BASE, DEMO_MODE } from './config.js';
 import { downloadOrderImage } from './capture.js';
 import { saveDraft, loadDraft, clearDraft } from './draft-store.js';
-import { ABILITY_FIELDS, normalizeRoster } from './player-roster.js';
+import { ABILITY_FIELDS, HAND_FIELDS, normalizeRoster } from './player-roster.js';
 
 const $ = id => document.getElementById(id);
 const coords = { CF:[50,16], LF:[18,28], RF:[82,28], SS:[33,48], '2B':[65,48], '3B':[18,67], '1B':[82,67], P:[50,69], C:[50,87], DH:[84,88] };
@@ -96,11 +96,12 @@ function playerAbilityText(player) {
 }
 function renderRoster() {
   const query=$('playerSearch').value.trim().toLowerCase(); const container=$('playerList'); container.replaceChildren();
-  const fields=[['name','\uC774\uB984'],['num','\uBC30\uBC88'],...ABILITY_FIELDS.map(([key,label])=>[key,label])];
+  const fields=[['name','\uC774\uB984'],['num','\uBC30\uBC88'],...HAND_FIELDS.map(([key,label])=>[key,label]),...ABILITY_FIELDS.map(([key,label])=>[key,label])];
   const visible=roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>{ const av=a[rosterSort.field]??'', bv=b[rosterSort.field]??''; const numeric=rosterSort.field!=='name'; const result=numeric?(Number(av||0)-Number(bv||0)):String(av).localeCompare(String(bv),'ko',{numeric:true}); return (result||a.name.localeCompare(b.name,'ko'))*rosterSort.direction; });
   const table=document.createElement('table'); table.className='player-admin-table'; const thead=document.createElement('thead'); const headRow=document.createElement('tr');
   fields.push(['actions','\uAD00\uB9AC']); fields.forEach(([field,label])=>{ const th=document.createElement('th'); if(field==='actions'){ th.textContent=label; } else { const button=document.createElement('button'); button.type='button'; button.className='table-sort-button'; button.textContent=label+' '+(rosterSort.field===field?(rosterSort.direction===1?'▲':'▼'):'↕'); button.addEventListener('click',()=>{ if(rosterSort.field===field)rosterSort.direction*=-1; else {rosterSort.field=field;rosterSort.direction=1;} renderRoster(); }); th.append(button); } headRow.append(th); }); thead.append(headRow); table.append(thead);
   const tbody=document.createElement('tbody'); visible.forEach(player=>{ const row=document.createElement('tr'); const name=document.createElement('td'); name.textContent=player.name; row.append(name); const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
+    for(const [key] of HAND_FIELDS){ const cell=document.createElement('td'); cell.textContent=player[key]==='R'?'\uC6B0':player[key]==='L'?'\uC88C':'-'; row.append(cell); }
     for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC':Number(player[key])===1?'\uBD80':'-'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
     const actions=document.createElement('td'); actions.className='table-actions'; const edit=document.createElement('button'); edit.type='button'; edit.className='text-button'; edit.textContent='\uC218\uC815'; edit.disabled=!WRITE_API_BASE; edit.addEventListener('click',()=>openPlayerForm(player)); const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent='\uC0AD\uC81C'; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deletePlayer(player.name)); actions.append(edit,remove); row.append(actions); tbody.append(row); });
   table.append(tbody); container.append(table);
@@ -118,6 +119,8 @@ function openPlayerForm(player = null) {
     select.value = String(player?.[key] ?? '0');
     wrapper.append(select); fields.append(wrapper);
   }
+  const handFields = $('playerHandFields'); handFields.replaceChildren();
+  for (const [key, label] of HAND_FIELDS) { const wrapper=document.createElement('label'); wrapper.textContent=label; const select=document.createElement('select'); select.name=key; [['','-'],['R','\uC6B0'],['L','\uC88C']].forEach(([value,text])=>select.add(new Option(text,value))); select.value=String(player?.[key] ?? ''); wrapper.append(select); handFields.append(wrapper); }
   $('playerForm').hidden = false;
   $('editPlayerName').focus();
 }
@@ -125,6 +128,7 @@ function closePlayerForm() { $('playerForm').hidden = true; editingPlayerName = 
 async function savePlayer(event) {
   event.preventDefault(); const candidate={name:$('editPlayerName').value.trim(),num:$('editPlayerNumber').value.trim()};
   for(const [key] of ABILITY_FIELDS) candidate[key]=$('playerAbilityFields').querySelector('[name="'+key+'"]').value;
+  for(const [key] of HAND_FIELDS) candidate[key]=$('playerHandFields').querySelector('[name="'+key+'"]').value;
   let updated; try { updated=normalizeRoster(editingPlayerName?roster.map(player=>player.name===editingPlayerName?candidate:player):[...roster,candidate]); } catch(error){ return status(error.message,true); }
   const password=prompt('Admin password'); if(!password)return;
   if(editingPlayerName&&editingPlayerName!==candidate.name&&!confirm('이름 변경 시 기존 오더도 함께 변경됩니다. 계속할까요?'))return;
@@ -360,7 +364,7 @@ refreshDraftNotice();
 Promise.allSettled([loadOrders().then(async () => {
   const linkedOrder = new URLSearchParams(location.search).get('orderName');
   if (linkedOrder) await openOrder(linkedOrder);
-}),readApi('getPlayers').then(data => {
+}),readApi('getPlayersV2').then(data => {
   if (!Array.isArray(data)) throw new Error('선수 목록 형식이 올바르지 않습니다.');
   roster = normalizeRoster(data); renderRoster();
 })]).then(results => {
