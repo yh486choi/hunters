@@ -67,18 +67,13 @@ function persistDraft() {
   }
 }
 function makeOrderButton(order) {
-  const row = document.createElement('div');
-  row.className = 'order-row';
-  const open = document.createElement('button'); open.type = 'button'; open.className = 'order-open';
-  const title = document.createElement('span');
-  const strong = document.createElement('strong'); strong.textContent = order.orderName;
-  const small = document.createElement('small'); small.textContent = dateText(order.savedAt);
-  title.append(strong, small);
-  const arrow = document.createElement('span'); arrow.textContent = '��';
-  open.append(title, arrow); open.addEventListener('click', () => openOrder(order.orderName));
-  const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button danger-button'; remove.textContent = '����';
-  remove.disabled = !WRITE_API_BASE; remove.addEventListener('click', () => deleteOrder(order.orderName));
-  row.append(open, remove); return row;
+  const row=document.createElement('div'); row.className='order-row';
+  const open=document.createElement('button'); open.type='button'; open.className='order-open';
+  const title=document.createElement('span'); const strong=document.createElement('strong'); strong.textContent=order.orderName;
+  const small=document.createElement('small'); small.textContent=dateText(order.savedAt); title.append(strong,small);
+  const arrow=document.createElement('span'); arrow.textContent='→'; open.append(title,arrow); open.addEventListener('click',()=>openOrder(order.orderName));
+  const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent=del; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deleteOrder(order.orderName));
+  row.append(open,remove); return row;
 }
 function renderOrders() {
   for (const [id, list] of [['recentOrders',orders.slice(0,4)],['allOrders',orders]]) {
@@ -99,22 +94,14 @@ function playerAbilityText(player) {
   return [main.length ? `주 ${main.join(' · ')}` : '', secondary.length ? `부 ${secondary.join(' · ')}` : ''].filter(Boolean).join(' / ') || '포지션 정보 없음';
 }
 function renderRoster() {
-  const query = $('playerSearch').value.trim().toLowerCase();
-  const sort = $('playerSort')?.value || 'name';
-  const container = $('playerList'); container.replaceChildren();
-  roster.filter(p => p.name.toLowerCase().includes(query) || String(p.num).includes(query))
-    .slice().sort((a,b) => sort === 'num' ? String(a.num).localeCompare(String(b.num),'ko',{numeric:true}) || a.name.localeCompare(b.name,'ko') : a.name.localeCompare(b.name,'ko'))
-    .forEach(player => {
-      const card = document.createElement('div'); card.className = 'card player-card';
-      const number = document.createElement('span'); number.className = 'number'; number.textContent = player.num || '?';
-      const info = document.createElement('div');
-      const name = document.createElement('strong'); name.textContent = player.name;
-      const ability = document.createElement('small'); ability.textContent = playerAbilityText(player);
-      const actions = document.createElement('div'); actions.className = 'player-actions';
-      const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'text-button'; edit.textContent = '����'; edit.disabled = !WRITE_API_BASE; edit.addEventListener('click', () => openPlayerForm(player));
-      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button danger-button'; remove.textContent = '����'; remove.disabled = !WRITE_API_BASE; remove.addEventListener('click', () => deletePlayer(player.name));
-      actions.append(edit,remove); info.append(name,ability); card.append(number,info,actions); container.append(card);
-    });
+  const query=$('playerSearch').value.trim().toLowerCase(); const sort=$('playerSort')?.value||'name'; const container=$('playerList'); container.replaceChildren();
+  roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>sort==='num'?String(a.num).localeCompare(String(b.num),'ko',{numeric:true})||a.name.localeCompare(b.name,'ko'):a.name.localeCompare(b.name,'ko')).forEach(player=>{
+    const card=document.createElement('div'); card.className='card player-card'; const number=document.createElement('span'); number.className='number'; number.textContent=player.num||'–';
+    const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=player.name; const ability=document.createElement('small'); ability.textContent=playerAbilityText(player);
+    const actions=document.createElement('div'); actions.className='player-actions'; const e=document.createElement('button'); e.type='button'; e.className='text-button'; e.textContent=edit; e.disabled=!WRITE_API_BASE; e.addEventListener('click',()=>openPlayerForm(player));
+    const d=document.createElement('button'); d.type='button'; d.className='text-button danger-button'; d.textContent=del; d.disabled=!WRITE_API_BASE; d.addEventListener('click',()=>deletePlayer(player.name));
+    actions.append(e,d); info.append(name,ability); card.append(number,info,actions); container.append(card);
+  });
 }
 function openPlayerForm(player = null) {
   editingPlayerName = player?.name ?? null;
@@ -134,31 +121,14 @@ function openPlayerForm(player = null) {
 }
 function closePlayerForm() { $('playerForm').hidden = true; editingPlayerName = null; }
 async function savePlayer(event) {
-  event.preventDefault();
-  const candidate = { name:$('editPlayerName').value.trim(), num:$('editPlayerNumber').value.trim() };
-  for (const [key] of ABILITY_FIELDS) candidate[key] = $('playerAbilityFields').querySelector('[name="' + key + '"]').value;
-  let updated;
-  try {
-    updated = normalizeRoster(editingPlayerName ? roster.map(player => player.name === editingPlayerName ? candidate : player) : [...roster,candidate]);
-  } catch (error) { return status(error.message,true); }
-  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
-  if (editingPlayerName && editingPlayerName !== candidate.name && !confirm('�̸��� �����ϸ� ���� ������ ���� �̸��� �Բ� ����˴ϴ�. ����ұ��?')) return;
-  $('savePlayerButton').disabled = true;
-  try {
-    status('���� ����� �����ϴ� ���Դϴ�.');
-    if (editingPlayerName && editingPlayerName !== candidate.name) await writeApi('renamePlayerV2',{ oldName:editingPlayerName, newName:candidate.name, password });
-    await writeApi('updatePlayersV2',{ players:updated, password });
-    roster = normalizeRoster(await readApi('getPlayers'));
-    closePlayerForm(); renderRoster(); status('���� ����� �����ϰ� �ٽ� �ҷ��Խ��ϴ�.');
-  } catch (error) { status(error.message,true); }
-  finally { $('savePlayerButton').disabled = false; }
+  event.preventDefault(); const candidate={name:$('editPlayerName').value.trim(),num:$('editPlayerNumber').value.trim()};
+  for(const [key] of ABILITY_FIELDS) candidate[key]=$('playerAbilityFields').querySelector('[name="'+key+'"]').value;
+  let updated; try { updated=normalizeRoster(editingPlayerName?roster.map(player=>player.name===editingPlayerName?candidate:player):[...roster,candidate]); } catch(error){ return status(error.message,true); }
+  const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return;
+  if(editingPlayerName&&editingPlayerName!==candidate.name&&!confirm('이름 변경 시 기존 오더도 함께 변경됩니다. 계속할까요?'))return;
+  $('savePlayerButton').disabled=true; try { if(editingPlayerName&&editingPlayerName!==candidate.name) await writeApi('renamePlayerV2',{oldName:editingPlayerName,newName:candidate.name,password}); await writeApi('updatePlayersV2',{players:updated,password}); roster=normalizeRoster(await readApi('getPlayers')); closePlayerForm(); renderRoster(); status('선수 목록을 저장했습니다.'); } catch(error){ status(error.message,true); } finally { $('savePlayerButton').disabled=false; }
 }
-async function deletePlayer(name) {
-  if (!confirm(name + ' ������ �����ұ��? ���� �������� ��� ���̸� ������ �� �����ϴ�.')) return;
-  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
-  try { await writeApi('deletePlayerV2',{ name, password }); roster = normalizeRoster(await readApi('getPlayers')); renderRoster(); status('������ �����߽��ϴ�.'); }
-  catch (error) { status(error.message,true); }
-}
+async function deletePlayer(name){ if(!confirm(name+' 선수를 삭제할까요?'))return; const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return; try { await writeApi('deletePlayerV2',{name,password}); roster=normalizeRoster(await readApi('getPlayers')); renderRoster(); status('선수를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 function displayName(name, state) {
   if (!name) return '';
   const player = state.players.find(p => p.name === name);
@@ -262,12 +232,7 @@ function renderSheet() {
       container.append(button);
     });
 }
-async function deleteOrder(name) {
-  if (!confirm(name + ' ������ �����ұ��?')) return;
-  const password = prompt('������ ��й�ȣ�� �Է��ϼ���.'); if (!password) return;
-  try { await writeApi('deleteOrderV2',{ name, password }); orders = orders.filter(order => order.orderName !== name); renderOrders(); if (currentName === name) { currentName=''; currentSavedAt=''; draft=createOrder(); show('orders'); } status('������ �����߽��ϴ�.'); }
-  catch (error) { status(error.message,true); }
-}
+async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(currentName===name){currentName='';currentSavedAt='';draft=createOrder();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 async function openOrder(name) {
   status('오더를 불러오는 중입니다.');
   try {
@@ -387,13 +352,7 @@ if (DEMO_MODE) {
   $('environmentNotice').hidden = false;
   $('environmentNotice').textContent = '로컬 데모 데이터입니다. 저장 비밀번호: demo · 서버를 다시 시작하면 초기화됩니다.';
 }
-async function changePassword() {
-  const oldPassword = prompt('���� ������ ��й�ȣ�� �Է��ϼ���.'); if (!oldPassword) return;
-  const newPassword = prompt('�� ��й�ȣ�� �Է��ϼ���. (4�� �̻�)'); if (!newPassword) return;
-  const confirmPassword = prompt('�� ��й�ȣ�� �ٽ� �Է��ϼ���.'); if (newPassword !== confirmPassword) return status('�� ��й�ȣ�� ��ġ���� �ʽ��ϴ�.',true);
-  try { await writeApi('changePasswordV2',{ oldPassword, newPassword }); status('������ ��й�ȣ�� �����߽��ϴ�.'); }
-  catch (error) { status(error.message,true); }
-}
+async function changePassword(){ const oldPassword=prompt('현재 관리자 비밀번호'); if(!oldPassword)return; const newPassword=prompt('새 비밀번호 (4자 이상)'); if(!newPassword)return; const again=prompt('새 비밀번호 재입력'); if(newPassword!==again)return status('비밀번호가 일치하지 않습니다.',true); try { await writeApi('changePasswordV2',{oldPassword,newPassword}); status('비밀번호를 변경했습니다.'); } catch(error){ status(error.message,true); } }
 $('saveButton').disabled = !WRITE_API_BASE;
 refreshDraftNotice();
 Promise.allSettled([loadOrders().then(async () => {
