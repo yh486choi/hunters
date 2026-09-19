@@ -23,3 +23,5 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .table-sort-button{border:0;background:transparent;color:inherit;font:inherit;font-weight:800;padding:2px 4px;cursor:pointer}.table-sort-button:hover{color:var(--text)}
 
 @media(max-width:720px){.player-admin-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.player-ability-fields{grid-template-columns:repeat(7,minmax(84px,1fr));overflow-x:auto;gap:8px;padding-bottom:4px}.player-ability-fields label{min-width:0}.player-ability-fields select{width:100%}
