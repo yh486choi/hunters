@@ -103,7 +103,7 @@ function renderRoster() {
   visible.forEach(player=>{ const row=document.createElement('tr');
     const name=document.createElement('td'); name.textContent=player.name; row.append(name);
     const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
-    for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC\uD3EC\uC9C0\uC5ED':Number(player[key])===1?'\uBD80\uD3EC\uC9C0\uC5ED':'—'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
+    for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC':Number(player[key])===1?'\uBD80':'-'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
     const actions=document.createElement('td'); actions.className='table-actions'; const edit=document.createElement('button'); edit.type='button'; edit.className='text-button'; edit.textContent='\uC218\uC815'; edit.disabled=!WRITE_API_BASE; edit.addEventListener('click',()=>openPlayerForm(player)); const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent='\uC0AD\uC81C'; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deletePlayer(player.name)); actions.append(edit,remove); row.append(actions); tbody.append(row); });
   table.append(tbody); container.append(table);
 }
@@ -116,7 +116,7 @@ function openPlayerForm(player = null) {
   for (const [key, label] of ABILITY_FIELDS) {
     const wrapper = document.createElement('label'); wrapper.textContent = label;
     const select = document.createElement('select'); select.name = key;
-    [['0','없음'],['1','부포지션'],['2','주포지션']].forEach(([value, label]) => select.add(new Option(label,value)));
+    [['0','-'],['1','부'],['2','주']].forEach(([value, label]) => select.add(new Option(label,value)));
     select.value = String(player?.[key] ?? '0');
     wrapper.append(select); fields.append(wrapper);
   }
