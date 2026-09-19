@@ -1,453 +1,113 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
 <head>
-  <meta charset="UTF-8" />
-  <title>⚾ 삼성 헌터스 오더 관리 시스템 ⚾</title>
-
-  <link rel="stylesheet" href="common.css" />
-  <link rel="stylesheet" href="index.css" />
-
-  <script>
-    /* [테마 유지 핵심] 페이지가 그려지기 전 저장된 테마를 즉시 적용 */
-    (function () {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
-      }
-    })();
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102544">
+  <title>삼성 헌터스 오더</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
 </head>
-
 <body>
-  <div id="loadingOverlay">
-    <div class="spinner"></div>
-    <div id="loadingText">데이터 처리 중...</div>
-  </div>
+  <header class="topbar">
+    <div class="brand"><img src="assets/hunters.png" alt="" class="logo"><span>삼성 헌터스</span></div>
+    <button id="themeButton" class="icon-button" type="button" aria-label="테마 전환">◐</button>
+  </header>
 
-  <h1>⚾ 삼성 헌터스 오더 관리 시스템 ⚾</h1>
-  <hr>
-  <div id="mainArea" style="margin-top: 20px;">
-    <div id="orderViewArea">
-      <div id="viewButtons">
-        <button class="buttonStyles" id="editBtn">📝 수정</button>
-        <button class="buttonStyles" id="captureBtn">📷 캡처</button>
-        <button class="buttonStyles" onclick="copyCurrentLink()">🔗 링크</button>
-        <button class="buttonStyles" onclick="shareCurrentLink()">📤 공유</button>
+  <main class="shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <button class="nav-button active" data-view="home" type="button">홈</button>
+      <button class="nav-button" data-view="orders" type="button">오더</button>
+      <button class="nav-button" data-view="players" type="button">선수</button>
+    </aside>
+
+    <div class="content">
+      <p id="environmentNotice" class="environment-notice" hidden></p>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <div id="draftNotice" class="draft-notice card" hidden>
+        <div><strong>작성 중인 오더가 있습니다</strong><p id="draftNoticeText" class="muted"></p></div>
+        <div class="header-actions"><button id="resumeDraftButton" class="primary-button" type="button">이어쓰기</button><button id="discardDraftButton" class="secondary-button" type="button">초안 삭제</button></div>
       </div>
 
-      <div id="orderViewPanel">
-        <span id="selectedOrderName">오더를 선택하세요</span>
-
-        <div id="positionWrapper">
-          <div class="posBox" id="pos_P"></div>
-          <div class="posBox" id="pos_C"></div>
-          <div class="posBox" id="pos_1B"></div>
-          <div class="posBox" id="pos_2B"></div>
-          <div class="posBox" id="pos_3B"></div>
-          <div class="posBox" id="pos_SS"></div>
-          <div class="posBox" id="pos_LF"></div>
-          <div class="posBox" id="pos_CF"></div>
-          <div class="posBox" id="pos_RF"></div>
-          <div class="posBox" id="pos_DH"></div>
+      <section id="homeView" class="view">
+        <div class="hero card">
+          <p class="eyebrow">SAMSUNG HUNTERS</p>
+          <h1>경기 오더를<br>한눈에 확인하세요</h1>
+          <p>그라운드에서 수비 위치를 보고, 필요한 선수를 바로 배치할 수 있습니다.</p>
+          <button id="newOrderButton" class="primary-button" type="button">새 오더 작성</button>
         </div>
+        <section class="card section-card">
+          <div class="section-heading"><h2>최근 오더</h2><button class="text-button" data-view="orders" type="button">전체 보기</button></div>
+          <div id="recentOrders" class="order-list"></div>
+        </section>
+      </section>
 
-        <div id="orderArea">
-          <div id="startingArea">
-            <span style="font-weight: bolder; text-align:center;">선발 명단</span>
-            <table id="startingTable" class="table_common">
-              <thead>
-                <tr>
-                  <th style="width: 30px;">타순</th>
-                  <th style="width: 80px;">선수명</th>
-                  <th style="width: 100px;">포지션</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>4</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>5</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>6</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>7</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>8</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>9</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>투수</td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <section id="ordersView" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">ORDERS</p><h1>오더</h1></div><button id="newOrderButton2" class="primary-button" type="button">새 오더</button></div>
+        <div id="allOrders" class="order-list card"></div>
+      </section>
 
-          <div id="waitingArea">
-            <label style="font-weight: bolder;">대기 명단</label>
-            <table id="waitingTable" class="table_common">
-              <thead>
-                <tr>
-                  <th style="width: 80px;">선수명</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+      <section id="playersView" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">ROSTER</p><h1>선수</h1></div><button id="newPlayerButton" class="primary-button" type="button">선수 추가</button></div>
+        <form id="playerForm" class="card section-card player-form" hidden>
+          <div class="section-heading"><h2 id="playerFormTitle">선수 추가</h2><button id="cancelPlayerButton" class="text-button" type="button">취소</button></div>
+          <div class="player-form-fields"><label>이름<input id="editPlayerName" class="text-input" type="text" maxlength="40" required></label><label>등번호<input id="editPlayerNumber" class="text-input" type="text" maxlength="20"></label></div>
+          <p class="hint">포지션별로 없음 · 부포지션 · 주포지션을 선택하세요.</p>
+          <div id="playerAbilityFields" class="player-ability-fields"></div>
+          <button id="savePlayerButton" class="primary-button" type="submit">선수 저장</button>
+        </form>
+        <input id="playerSearch" class="search-input" type="search" placeholder="이름 또는 등번호 검색" aria-label="선수 검색">
+        <div id="playerList" class="player-grid"></div>
+      </section>
+
+      <section id="detailView" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">ORDER DETAIL</p><h1 id="detailTitle">오더</h1><p id="detailDate" class="muted"></p></div><div class="header-actions"><button id="shareButton" class="secondary-button" type="button">링크 공유</button><button id="captureButton" class="secondary-button" type="button">이미지 저장</button><button id="editButton" class="primary-button" type="button">수정</button></div></div>
+        <div id="detailField" class="field" aria-label="수비 포지션"></div>
+        <div class="detail-columns">
+          <section class="card section-card"><h2>선발 명단</h2><ol id="detailLineup" class="lineup-list"></ol></section>
+          <section class="card section-card"><h2>대기 명단</h2><div id="detailWaiting" class="waiting-list"></div></section>
         </div>
-      </div>
+      </section>
+
+      <section id="editorView" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">ORDER EDITOR</p><h1>오더 작성</h1></div><div class="header-actions"><button id="captureDraftButton" class="secondary-button" type="button">이미지 저장</button><button id="saveButton" class="primary-button" type="button">저장</button></div></div>
+        <label class="field-label" for="orderName">오더명</label>
+        <input id="orderName" class="text-input" type="text" placeholder="예: 26-09-19 NBL" autocomplete="off">
+        <p class="hint">그라운드의 포지션을 눌러 선수를 배치하세요.</p>
+        <div id="editorField" class="field interactive-field" aria-label="수비 포지션 선택"></div>
+        <div class="detail-columns">
+          <section class="card section-card"><h2>타순</h2><div id="editorLineup" class="editor-lineup"></div></section>
+          <section class="card section-card"><h2>참가 · 대기 선수</h2><div class="add-row"><select id="addPlayerSelect" aria-label="참가 선수 추가"></select><button id="addPlayerButton" class="secondary-button" type="button">추가</button></div><div id="editorPlayers" class="editor-players"></div></section>
+        </div>
+      </section>
     </div>
+  </main>
 
-    <div id="orderListArea">
-      <div class="adminButtonBox">
-        <button class="buttonStyles" onclick="location.href='order_write.html'">📝 오더 작성</button>
-        <button class="buttonStyles" onclick="location.href='admin.html'">🙍‍♂️ 선수 관리</button>
-        <button class="buttonStyles" onclick="toggleDarkMode()">🌓 테마 전환</button>
-        <button class="buttonStyles" onclick="changePassword()">🔒 관리자</button>
-      </div>
+  <nav class="bottom-nav" aria-label="주 메뉴">
+    <button class="nav-button active" data-view="home" type="button"><span>⌂</span>홈</button>
+    <button class="nav-button" data-view="orders" type="button"><span>⚾</span>오더</button>
+    <button class="nav-button" data-view="players" type="button"><span>♧</span>선수</button>
+  </nav>
 
-      <div id="orderListBottom" style="margin-top: 10px;">
-        <table id="orderTable" class="table_common">
-          <thead>
-            <tr>
-              <th style="width: 200px; text-align: left;">오더명</th>
-              <th style="width: 100px;">저장일자</th>
-              <th style="width: 40px;"></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <div id="pagination" style="margin-top: 10px; display: flex; gap: 5px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
+  <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
+  <section id="playerSheet" class="player-sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-handle"></div>
+    <div class="section-heading"><h2 id="sheetTitle">선수 선택</h2><button id="closeSheet" class="icon-button" type="button" aria-label="닫기">×</button></div>
+    <input id="sheetSearch" class="search-input" type="search" placeholder="선수 검색" aria-label="선수 검색">
+    <div id="sheetPlayers" class="sheet-players"></div>
+  </section>
   <script>
-    /* 로딩 제어 함수 */
-    function showLoading(text = "처리 중...") {
-      document.getElementById("loadingText").textContent = text;
-      document.getElementById("loadingOverlay").style.display = "flex";
+    if (location.protocol === 'file:') {
+      const notice = document.getElementById('environmentNotice');
+      notice.hidden = false;
+      notice.textContent = '파일로 직접 열면 버튼이 작동하지 않습니다. 이 폴더에서 node dev-server.js를 실행한 뒤 http://127.0.0.1:8765 로 접속하세요.';
     }
-
-    function hideLoading() {
-      document.getElementById("loadingOverlay").style.display = "none";
-    }
-
-    function toggleDarkMode() {
-      const isDark = document.body.classList.toggle('dark-mode');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    }
-
-    function applySavedTheme() {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-      }
-    }
-
-    let currentPage = 1;
-    const ORDERS_PER_PAGE = 18;
-    let orderList = [];
-
-    const API = {
-      getOrders: "https://us-central1-hunters-2026.cloudfunctions.net/getOrders",
-      getOrder: "https://us-central1-hunters-2026.cloudfunctions.net/getOrder",
-      deleteOrder: "https://us-central1-hunters-2026.cloudfunctions.net/deleteOrder",
-      check: "https://us-central1-hunters-2026.cloudfunctions.net/checkPassword",
-      updatePw: "https://us-central1-hunters-2026.cloudfunctions.net/updatePassword"
-    };
-
-    let currentOrderName = null;
-
-    function formatDate(dateString) {
-      const d = new Date(dateString);
-      return `${String(d.getFullYear()).slice(2)}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-    }
-
-    function nameWithNum(name, players) {
-      const p = players.find(x => x.name === name);
-      return p ? `${name}(${p.num})` : name;
-    }
-
-    window.onload = async () => {
-      applySavedTheme();
-      await loadOrderList();
-    };
-
-    async function loadOrderList() {
-      showLoading("오더 목록을 불러오는 중...");
-      try {
-        const res = await fetch(API.getOrders);
-        orderList = await res.json();
-        orderList.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
-
-        const params = new URLSearchParams(location.search);
-        const orderName = params.get("orderName");
-        if (orderName) {
-          const index = orderList.findIndex(o => o.orderName === orderName);
-          if (index !== -1) {
-            currentOrderName = orderName;
-            renderOrderPage(Math.floor(index / ORDERS_PER_PAGE) + 1);
-            await loadOrderView(orderName);
-          } else renderOrderPage(1);
-        } else renderOrderPage(1);
-      } catch (err) {
-        alert("목록을 불러오지 못했습니다.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    function renderOrderPage(page) {
-      currentPage = page;
-      const tbody = document.querySelector("#orderTable tbody");
-      tbody.innerHTML = "";
-      const start = (page - 1) * ORDERS_PER_PAGE;
-      const end = start + ORDERS_PER_PAGE;
-      const pageOrders = orderList.slice(start, end);
-
-      pageOrders.forEach(item => {
-        const tr = document.createElement("tr");
-        if (item.orderName === currentOrderName) tr.classList.add("selected-order-row");
-        const nameTd = document.createElement("td");
-        nameTd.innerHTML = `<span class="order-link">${item.orderName}</span>`;
-        nameTd.onclick = () => loadOrderView(item.orderName);
-        nameTd.style.textAlign = "left";
-        const dateTd = document.createElement("td");
-        dateTd.textContent = formatDate(item.savedAt);
-        const delTd = document.createElement("td");
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "삭제";
-        delBtn.className = "buttonStyles";
-        delBtn.onclick = (e) => { e.stopPropagation(); deleteOrderWithPW(item.orderName); };
-        delTd.appendChild(delBtn);
-        tr.appendChild(nameTd); tr.appendChild(dateTd); tr.appendChild(delTd);
-        tbody.appendChild(tr);
-      });
-      renderPagination();
-    }
-
-    function renderPagination() {
-      const container = document.getElementById("pagination");
-      container.innerHTML = "";
-      const totalPages = Math.ceil(orderList.length / ORDERS_PER_PAGE);
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = "buttonStyles";
-        if (i === currentPage) btn.style.background = "var(--highlight-bg)";
-        btn.onclick = () => renderOrderPage(i);
-        container.appendChild(btn);
-      }
-    }
-
-    async function loadOrderView(name) {
-      showLoading(`${name} 데이터를 로드 중...`);
-      try {
-        window.history.replaceState(null, "", "?orderName=" + encodeURIComponent(name));
-        const data = await fetch(API.getOrder + "?name=" + encodeURIComponent(name)).then(r => r.json());
-        if (!data || !data.payload) return alert("데이터 오류");
-
-        currentOrderName = name;
-        document.querySelectorAll("#orderTable tbody tr").forEach(tr => tr.classList.remove("selected-order-row"));
-        const rows = Array.from(document.querySelectorAll("#orderTable tbody tr"));
-        const match = rows.find(tr => tr.querySelector("td:first-child").textContent.trim() === name);
-        if (match) match.classList.add("selected-order-row");
-
-        document.getElementById("selectedOrderName").textContent = name;
-        const payload = data.payload;
-        window._currentPlayers = payload.players;
-        renderPositions(payload.positions);
-        renderStarting(payload.startingList, payload.players);
-        renderWaiting(payload.players, payload.startingList);
-      } catch (err) {
-        alert("오더 상세 정보를 불러오지 못했습니다.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    function renderPositions(pos) {
-      ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"].forEach(key => {
-        const box = document.getElementById("pos_" + key);
-        box.textContent = pos[key] ? nameWithNum(pos[key], window._currentPlayers) : "";
-      });
-    }
-
-    function renderStarting(list, players) {
-      const rows = document.querySelectorAll("#startingTable tbody tr");
-      for (let i = 0; i < 10; i++) {
-        const row = rows[i];
-        const item = list[i];
-        const cells = row.querySelectorAll("td");
-        if (item) {
-          cells[1].textContent = item.name ? nameWithNum(item.name, players) : "";
-          cells[2].textContent = item.pos || "";
-        }
-      }
-    }
-
-    function renderWaiting(players, startingList) {
-      const tbody = document.querySelector("#waitingTable tbody");
-      tbody.innerHTML = "";
-      const usedNames = startingList.map(s => s.name).filter(Boolean);
-      const waitingNames = players.map(p => p.name).filter(n => !usedNames.includes(n));
-      const rowCount = Math.max(10, waitingNames.length);
-
-      for (let i = 0; i < rowCount; i++) {
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.textContent = waitingNames[i] ? nameWithNum(waitingNames[i], players) : "";
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-      }
-    }
-
-    document.getElementById("editBtn").onclick = () => {
-      if (!currentOrderName) return alert("오더를 선택하세요");
-      location.href = "order_write.html?orderName=" + encodeURIComponent(currentOrderName);
-    };
-
-    async function deleteOrderWithPW(name) {
-      const pw = prompt("삭제 비밀번호를 입력하세요");
-      if (!pw) return;
-
-      showLoading("비밀번호 확인 중...");
-      try {
-        const valid = await fetch(API.check, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: pw })
-        }).then(r => r.json());
-
-        if (valid.status !== "성공") {
-          alert("비밀번호가 틀렸습니다.");
-          return;
-        }
-
-        showLoading("오더 삭제 중...");
-        await fetch(API.deleteOrder + "?name=" + encodeURIComponent(name));
-        alert("삭제되었습니다.");
-        location.reload();
-      } catch (err) {
-        alert("삭제 중 오류가 발생했습니다.");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    document.getElementById("captureBtn").onclick = async () => {
-      if (!currentOrderName) return alert("캡처할 오더를 먼저 선택하세요.");
-      
-      // 현재 시간 포맷팅 (YYMMDDHHMMSS)
-      const now = new Date();
-      const yy = String(now.getFullYear()).slice(2);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      const timeString = `_${yy}${mm}${dd}${hh}${min}${ss}`;
-
-      showLoading("이미지 생성 중...");
-      const target = document.getElementById("orderViewPanel");
-      
-      try {
-        const canvas = await html2canvas(target, { scale: 2, useCORS: true });
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/jpeg", 0.92);
-        // 파일명에 시간 정보 추가
-        link.download = `order_${currentOrderName}${timeString}.jpg`;
-        link.click();
-      } catch (err) {
-        alert("이미지 캡처 오류: " + err.message);
-      } finally {
-        hideLoading();
-      }
-    };
-
-    function copyCurrentLink() {
-      navigator.clipboard.writeText(window.location.href).then(() => alert("링크가 클립보드에 복사되었습니다."));
-    }
-
-    function shareCurrentLink() {
-      if (navigator.share) {
-        navigator.share({ title: "삼성 헌터스 오더", url: window.location.href });
-      } else {
-        copyCurrentLink();
-      }
-    }
-
-    async function changePassword() {
-      const oldPw = prompt("현재 비밀번호 입력");
-      if (!oldPw) return;
-
-      showLoading("비밀번호 확인 중...");
-      try {
-        const checkRes = await fetch(API.check, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: oldPw })
-        }).then(r => r.json());
-
-        if (checkRes.status !== "성공") {
-          alert("비밀번호가 일치하지 않습니다.");
-          return;
-        }
-
-        const newPw = prompt("새 비밀번호 입력");
-        if (!newPw) return;
-
-        showLoading("비밀번호 변경 중...");
-        const upd = await fetch(API.updatePw, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
-        }).then(r => r.json());
-
-        if (upd.status === "성공") alert("비밀번호가 성공적으로 변경되었습니다!");
-        else alert("변경 실패: " + upd.error);
-      } catch (err) {
-        alert("오류가 발생했습니다.");
-      } finally {
-        hideLoading();
-      }
-    }
+    window.addEventListener('error', event => {
+      if (location.protocol === 'file:') return;
+      const status = document.getElementById('status');
+      status.classList.add('error');
+      status.textContent = '화면 스크립트를 실행하지 못했습니다. 개발자 콘솔에서 오류를 확인하세요.';
+    });
   </script>
 </body>
-
 </html>
