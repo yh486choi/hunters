@@ -95,13 +95,17 @@ function playerAbilityText(player) {
 }
 function renderRoster() {
   const query=$('playerSearch').value.trim().toLowerCase(); const sort=$('playerSort')?.value||'name'; const container=$('playerList'); container.replaceChildren();
-  roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>sort==='num'?String(a.num).localeCompare(String(b.num),'ko',{numeric:true})||a.name.localeCompare(b.name,'ko'):a.name.localeCompare(b.name,'ko')).forEach(player=>{
-    const card=document.createElement('div'); card.className='card player-card'; const number=document.createElement('span'); number.className='number'; number.textContent=player.num||'–';
-    const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=player.name; const ability=document.createElement('small'); ability.textContent=playerAbilityText(player);
-    const actions=document.createElement('div'); actions.className='player-actions'; const e=document.createElement('button'); e.type='button'; e.className='text-button'; e.textContent=String.fromCharCode(49688,51221); e.disabled=!WRITE_API_BASE; e.addEventListener('click',()=>openPlayerForm(player));
-    const d=document.createElement('button'); d.type='button'; d.className='text-button danger-button'; d.textContent=String.fromCharCode(49325,51228); d.disabled=!WRITE_API_BASE; d.addEventListener('click',()=>deletePlayer(player.name));
-    actions.append(e,d); info.append(name,ability); card.append(number,info,actions); container.append(card);
-  });
+  const visible=roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>sort==='num'?String(a.num).localeCompare(String(b.num),'ko',{numeric:true})||a.name.localeCompare(b.name,'ko'):a.name.localeCompare(b.name,'ko'));
+  const table=document.createElement('table'); table.className='player-admin-table';
+  const headers=['\uC774\uB984','\uBC30\uBC88','P','C','1B','2B','3B','SS','OF','\uAD00\uB9AC'];
+  const thead=document.createElement('thead'); const headRow=document.createElement('tr'); headers.forEach(label=>{const th=document.createElement('th'); th.textContent=label; headRow.append(th);}); thead.append(headRow); table.append(thead);
+  const tbody=document.createElement('tbody');
+  visible.forEach(player=>{ const row=document.createElement('tr');
+    const name=document.createElement('td'); name.textContent=player.name; row.append(name);
+    const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
+    for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC\uD3EC\uC9C0\uC5ED':Number(player[key])===1?'\uBD80\uD3EC\uC9C0\uC5ED':'—'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
+    const actions=document.createElement('td'); actions.className='table-actions'; const edit=document.createElement('button'); edit.type='button'; edit.className='text-button'; edit.textContent='\uC218\uC815'; edit.disabled=!WRITE_API_BASE; edit.addEventListener('click',()=>openPlayerForm(player)); const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent='\uC0AD\uC81C'; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deletePlayer(player.name)); actions.append(edit,remove); row.append(actions); tbody.append(row); });
+  table.append(tbody); container.append(table);
 }
 function openPlayerForm(player = null) {
   editingPlayerName = player?.name ?? null;
