@@ -29,6 +29,13 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .player-hand-fields{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}.player-hand-fields label{display:grid;gap:5px;font-weight:700}.player-hand-fields select{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);padding:9px 12px}
 
 .player-admin-table-wrap,.player-form{min-width:0;max-width:100%}
+.player-add-form{display:block;overflow-x:auto;padding:10px}
+.player-add-row{display:grid;grid-template-columns:120px 60px repeat(9,minmax(58px,1fr)) 60px 40px;align-items:end;gap:6px;min-width:918px}
+.player-add-row .player-hand-fields,.player-add-row .player-ability-fields{display:contents}
+.player-add-row label{min-width:0;gap:4px;font-size:12px;color:var(--muted)}
+.player-add-row input,.player-add-row select{width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);padding:6px;font-size:14px}
+.player-add-row button{min-height:40px;padding:6px;white-space:nowrap;font-size:13px}
+.player-add-row .primary-button{justify-self:stretch}
 .roster-save-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .roster-save-bar p{margin:0;font-size:13px;color:var(--muted)}
 .roster-save-actions{display:flex;gap:8px;flex-shrink:0}
