@@ -72,7 +72,7 @@ function makeOrderButton(order) {
   const title=document.createElement('span'); const strong=document.createElement('strong'); strong.textContent=order.orderName;
   const small=document.createElement('small'); small.textContent=dateText(order.savedAt); title.append(strong,small);
   const arrow=document.createElement('span'); arrow.textContent='→'; open.append(title,arrow); open.addEventListener('click',()=>openOrder(order.orderName));
-  const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent=del; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deleteOrder(order.orderName));
+  const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent=String.fromCharCode(49325,51228); remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deleteOrder(order.orderName));
   row.append(open,remove); return row;
 }
 function renderOrders() {
@@ -98,8 +98,8 @@ function renderRoster() {
   roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>sort==='num'?String(a.num).localeCompare(String(b.num),'ko',{numeric:true})||a.name.localeCompare(b.name,'ko'):a.name.localeCompare(b.name,'ko')).forEach(player=>{
     const card=document.createElement('div'); card.className='card player-card'; const number=document.createElement('span'); number.className='number'; number.textContent=player.num||'–';
     const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=player.name; const ability=document.createElement('small'); ability.textContent=playerAbilityText(player);
-    const actions=document.createElement('div'); actions.className='player-actions'; const e=document.createElement('button'); e.type='button'; e.className='text-button'; e.textContent=edit; e.disabled=!WRITE_API_BASE; e.addEventListener('click',()=>openPlayerForm(player));
-    const d=document.createElement('button'); d.type='button'; d.className='text-button danger-button'; d.textContent=del; d.disabled=!WRITE_API_BASE; d.addEventListener('click',()=>deletePlayer(player.name));
+    const actions=document.createElement('div'); actions.className='player-actions'; const e=document.createElement('button'); e.type='button'; e.className='text-button'; e.textContent=String.fromCharCode(49688,51221); e.disabled=!WRITE_API_BASE; e.addEventListener('click',()=>openPlayerForm(player));
+    const d=document.createElement('button'); d.type='button'; d.className='text-button danger-button'; d.textContent=String.fromCharCode(49325,51228); d.disabled=!WRITE_API_BASE; d.addEventListener('click',()=>deletePlayer(player.name));
     actions.append(e,d); info.append(name,ability); card.append(number,info,actions); container.append(card);
   });
 }
@@ -124,11 +124,11 @@ async function savePlayer(event) {
   event.preventDefault(); const candidate={name:$('editPlayerName').value.trim(),num:$('editPlayerNumber').value.trim()};
   for(const [key] of ABILITY_FIELDS) candidate[key]=$('playerAbilityFields').querySelector('[name="'+key+'"]').value;
   let updated; try { updated=normalizeRoster(editingPlayerName?roster.map(player=>player.name===editingPlayerName?candidate:player):[...roster,candidate]); } catch(error){ return status(error.message,true); }
-  const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return;
+  const password=prompt('Admin password'); if(!password)return;
   if(editingPlayerName&&editingPlayerName!==candidate.name&&!confirm('이름 변경 시 기존 오더도 함께 변경됩니다. 계속할까요?'))return;
   $('savePlayerButton').disabled=true; try { if(editingPlayerName&&editingPlayerName!==candidate.name) await writeApi('renamePlayerV2',{oldName:editingPlayerName,newName:candidate.name,password}); await writeApi('updatePlayersV2',{players:updated,password}); roster=normalizeRoster(await readApi('getPlayers')); closePlayerForm(); renderRoster(); status('선수 목록을 저장했습니다.'); } catch(error){ status(error.message,true); } finally { $('savePlayerButton').disabled=false; }
 }
-async function deletePlayer(name){ if(!confirm(name+' 선수를 삭제할까요?'))return; const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return; try { await writeApi('deletePlayerV2',{name,password}); roster=normalizeRoster(await readApi('getPlayers')); renderRoster(); status('선수를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
+async function deletePlayer(name){ if(!confirm(name+' 선수를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deletePlayerV2',{name,password}); roster=normalizeRoster(await readApi('getPlayers')); renderRoster(); status('선수를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 function displayName(name, state) {
   if (!name) return '';
   const player = state.players.find(p => p.name === name);
@@ -232,7 +232,7 @@ function renderSheet() {
       container.append(button);
     });
 }
-async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt(admin+' '+pw+'를 입력하세요.'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(currentName===name){currentName='';currentSavedAt='';draft=createOrder();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
+async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(currentName===name){currentName='';currentSavedAt='';draft=createOrder();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 async function openOrder(name) {
   status('오더를 불러오는 중입니다.');
   try {
