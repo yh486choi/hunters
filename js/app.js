@@ -16,7 +16,7 @@ let roster = [];
 let draft = createOrder();
 let currentName = '';
 let currentSavedAt = '';
-let view = 'home';
+let view = 'orders';
 let sheetPosition = '';
 
 
@@ -40,10 +40,10 @@ async function writeApi(path, body) {
 }
 function show(next) {
   view = next;
-  for (const name of ['home','orders','players','detail','editor']) $(`${name}View`).hidden = name !== next;
+  for (const name of ['orders','players','detail','editor']) $(`${name}View`).hidden = name !== next;
   document.querySelectorAll('.nav-button').forEach(button => button.classList.toggle('active', button.dataset.view === next));
   refreshDraftNotice();
-  if (['home','orders','players'].includes(next) && location.search) history.replaceState(null,'',location.pathname);
+  if (['orders','players'].includes(next) && location.search) history.replaceState(null,'',location.pathname);
   window.scrollTo(0,0);
 }
 function dateText(value) {
@@ -77,7 +77,7 @@ function makeOrderButton(order) {
   row.append(open,remove); return row;
 }
 function renderOrders() {
-  for (const [id, list] of [['recentOrders',orders.slice(0,4)],['allOrders',orders]]) {
+  for (const [id, list] of [['allOrders',orders]]) {
     const container = $(id);
     container.replaceChildren();
     if (!list.length) {
@@ -258,7 +258,6 @@ async function loadOrders() {
 }
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => show(button.dataset.view)));
 $('newOrderButton').addEventListener('click', () => startEditor(true));
-$('newOrderButton2').addEventListener('click', () => startEditor(true));
 $('editButton').addEventListener('click', () => startEditor(false));
 $('captureButton').addEventListener('click', async () => {
   try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage(draft,currentName); status('이미지 다운로드를 시작했습니다.'); }
