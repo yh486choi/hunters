@@ -1,3 +1,4 @@
+import { renderOrderField, renderOrderTables, renderParticipants, renderAbilities, renderOrderList } from './order-views.js';
 import {
   POSITIONS, createOrder, toPayload, validateOrder, assignPosition,
   setBattingPlayer, addPlayer, removePlayer, setExcluded, waitingPlayers
@@ -11,6 +12,9 @@ const $ = id => document.getElementById(id);
 const coords = { CF:[50,16], LF:[18,28], RF:[82,28], SS:[33,48], '2B':[65,48], '3B':[18,67], '1B':[82,67], P:[50,69], C:[50,87], DH:[84,88] };
 const abilities = { P:'p', C:'c', '1B':'1b', '2B':'2b', '3B':'3b', SS:'ss', LF:'of', CF:'of', RF:'of' };
 let orders = [];
+let orderPage = 0;
+let selectedOrder = null;
+let orderRequest = 0;
 let roster = [];
 
 let draft = createOrder();
@@ -39,11 +43,19 @@ async function writeApi(path, body) {
   return data;
 }
 function show(next) {
+  const detail = next === 'detail';
+  if (detail) next = 'orders';
+  if (next === 'orders') {
+    draft = createOrder(selectedOrder?.payload);
+    currentName = selectedOrder?.orderName || '';
+    currentSavedAt = selectedOrder?.savedAt || '';
+    renderDetail();
+  }
   view = next;
-  for (const name of ['orders','players','detail','editor']) $(`${name}View`).hidden = name !== next;
+  for (const name of ['orders','players','editor']) $(`${name}View`).hidden = name !== next;
   document.querySelectorAll('.nav-button').forEach(button => button.classList.toggle('active', button.dataset.view === next));
   refreshDraftNotice();
-  if (['orders','players'].includes(next) && location.search) history.replaceState(null,'',location.pathname);
+  if (!detail && ['orders','players'].includes(next) && location.search) history.replaceState(null,'',location.pathname);
   window.scrollTo(0,0);
 }
 function dateText(value) {
@@ -67,104 +79,28 @@ function persistDraft() {
     status('브라우저에 초안을 저장하지 못했습니다. 저장 공간 설정을 확인하세요.',true);
   }
 }
-function makeOrderButton(order) {
-  const row=document.createElement('div'); row.className='order-row';
-  const open=document.createElement('button'); open.type='button'; open.className='order-open';
-  const title=document.createElement('span'); const strong=document.createElement('strong'); strong.textContent=order.orderName;
-  const small=document.createElement('small'); small.textContent=dateText(order.savedAt); title.append(strong,small);
-  const arrow=document.createElement('span'); arrow.textContent='→'; open.append(title,arrow); open.addEventListener('click',()=>openOrder(order.orderName));
-  const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent=String.fromCharCode(49325,51228); remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deleteOrder(order.orderName));
-  row.append(open,remove); return row;
-}
 function renderOrders() {
-  for (const [id, list] of [['allOrders',orders]]) {
-    const container = $(id);
-    container.replaceChildren();
-    if (!list.length) {
-      const empty = document.createElement('p');
-      empty.className = 'empty';
-      empty.textContent = '표시할 오더가 없습니다.';
-      container.append(empty);
-    } else list.forEach(order => container.append(makeOrderButton(order)));
-  }
-}
-function playerAbilityText(player) {
-  const names = { p:'P', c:'C', '1b':'1B', '2b':'2B', '3b':'3B', ss:'SS', of:'OF' };
-  const main = Object.entries(names).filter(([key]) => Number(player[key]) === 2).map(([,label]) => label);
-  const secondary = Object.entries(names).filter(([key]) => Number(player[key]) === 1).map(([,label]) => label);
-  return [main.length ? `주 ${main.join(' · ')}` : '', secondary.length ? `부 ${secondary.join(' · ')}` : ''].filter(Boolean).join(' / ') || '포지션 정보 없음';
+  orderPage = renderOrderList(orders,orderPage,selectedOrder?.orderName,{onOpen:openOrder,onDelete:deleteOrder,onPage:page=>{orderPage=page;renderOrders();},writable:Boolean(WRITE_API_BASE)});
 }
 function displayName(name, state) {
   if (!name) return '';
   const player = state.players.find(p => p.name === name);
   return player?.num ? `${name} #${player.num}` : name;
 }
-function renderField(id, state, interactive) {
-  const field = $(id); field.replaceChildren();
-  for (const pos of POSITIONS) {
-    const node = document.createElement(interactive ? 'button' : 'div');
-    node.className = 'position';
-    node.style.left = `${coords[pos][0]}%`; node.style.top = `${coords[pos][1]}%`;
-    const label = document.createElement('strong'); label.textContent = pos;
-    const player = document.createElement('small'); player.textContent = state.positions[pos] || (interactive ? '선택' : '—');
-    node.append(label, player);
-    if (interactive) { node.type = 'button'; node.setAttribute('aria-label', `${pos} 선수 선택`); node.addEventListener('click', () => openSheet(pos)); }
-    field.append(node);
-  }
-}
 function renderDetail() {
-  $('detailTitle').textContent = currentName;
-  $('detailDate').textContent = dateText(currentSavedAt);
-  renderField('detailField', draft, false);
-  const lineup = $('detailLineup'); lineup.replaceChildren();
-  draft.startingList.slice(0,9).forEach(row => {
-    const li = document.createElement('li');
-    li.textContent = displayName(row.name, draft) || '—';
-    const pos = document.createElement('span'); pos.textContent = row.pos || '';
-    li.append(pos); lineup.append(li);
-  });
-  const pitcher = document.createElement('li'); pitcher.textContent = `투수 · ${displayName(draft.startingList[9].name, draft) || '—'}`; lineup.append(pitcher);
-  const waiting = $('detailWaiting'); waiting.replaceChildren();
-  waitingPlayers(draft).forEach(player => {
-    const chip = document.createElement('span'); chip.className = 'waiting-chip';
-    if (draft.excludedPlayers.includes(player.name)) chip.classList.add('excluded');
-    chip.textContent = displayName(player.name, draft); waiting.append(chip);
-  });
+  $('detailTitle').textContent = selectedOrder?.orderName || '\uC624\uB354\uB97C \uC120\uD0DD\uD558\uC138\uC694';
+  $('detailDate').textContent = dateText(selectedOrder?.savedAt);
+  for (const id of ['editButton','captureButton','copyLinkButton','shareButton']) $(id).disabled = !selectedOrder;
+  const state = createOrder(selectedOrder?.payload);
+  renderOrderField('detailField',state,roster);
+  renderOrderTables(state);
 }
 function renderEditor() {
-  renderField('editorField', draft, true);
-  const lineup = $('editorLineup'); lineup.replaceChildren();
-  draft.startingList.slice(0,9).forEach((row,index) => {
-    const wrapper = document.createElement('div'); wrapper.className = 'lineup-row';
-    const label = document.createElement('label'); label.textContent = `${index+1}번`; label.htmlFor = `batting${index}`;
-    const select = document.createElement('select'); select.id = `batting${index}`;
-    const blank = new Option('선수 선택', ''); select.add(blank);
-    draft.players.forEach(p => select.add(new Option(displayName(p.name,draft),p.name)));
-    select.value = row.name;
-    select.addEventListener('change', () => mutate(() => setBattingPlayer(draft,index,select.value)));
-    wrapper.append(label,select); lineup.append(wrapper);
-  });
-  const pitcher = document.createElement('p'); pitcher.className = 'muted'; pitcher.textContent = `투수 · ${displayName(draft.positions.P,draft) || '미지정'} (그라운드 P에서 선택)`; lineup.append(pitcher);
-  const add = $('addPlayerSelect'); add.replaceChildren();
-  const present = new Set(draft.players.map(p => p.name));
-  roster.filter(p => !present.has(p.name)).forEach(p => add.add(new Option(displayName(p.name,{players:roster}),p.name)));
-  $('addPlayerButton').disabled = !add.options.length;
-  const container = $('editorPlayers'); container.replaceChildren();
-  draft.players.forEach(player => {
-    const row = document.createElement('div'); row.className = 'editor-player';
-    const name = document.createElement('strong'); name.textContent = displayName(player.name,draft);
-    const actions = document.createElement('div'); actions.className = 'actions';
-    const waiting = waitingPlayers(draft).some(p => p.name === player.name);
-    if (waiting) {
-      const label = document.createElement('label');
-      const box = document.createElement('input'); box.type = 'checkbox'; box.checked = draft.excludedPlayers.includes(player.name);
-      box.addEventListener('change', () => mutate(() => setExcluded(draft,player.name,box.checked)));
-      label.append(box,'제외'); actions.append(label);
-    }
-    const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '삭제';
-    remove.addEventListener('click', () => mutate(() => removePlayer(draft,player.name)));
-    actions.append(remove); row.append(name,actions); container.append(row);
-  });
+  const onAssign = (pos,name)=>mutate(()=>assignPosition(draft,pos,name));
+  renderOrderField('editorField',draft,roster,onAssign);
+  renderOrderTables(draft,{editable:true,onAssign,onBatting:(index,name)=>mutate(()=>setBattingPlayer(draft,index,name)),onExcluded:(name,excluded)=>mutate(()=>setExcluded(draft,name,excluded))});
+  renderParticipants(draft,roster,name=>mutate(()=>removePlayer(draft,name)));
+  renderAbilities(draft,roster,onAssign);
 }
 function mutate(action) {
   try { draft = action(); renderEditor(); status(); persistDraft(); }
@@ -197,22 +133,27 @@ function renderSheet() {
       container.append(button);
     });
 }
-async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(currentName===name){currentName='';currentSavedAt='';draft=createOrder();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
+async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(selectedOrder?.orderName===name){selectedOrder=null;currentName='';currentSavedAt='';draft=createOrder();renderDetail();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
 async function openOrder(name) {
+  const request = ++orderRequest;
   status('오더를 불러오는 중입니다.');
   try {
     const data = await readApi(`getOrder?name=${encodeURIComponent(name)}`);
+    if (request !== orderRequest) return;
     if (!data?.payload) throw new Error('오더 데이터가 없습니다.');
+    selectedOrder = structuredClone(data);
     draft = createOrder(data.payload);
     currentName = data.orderName || name;
     currentSavedAt = data.savedAt || '';
     history.replaceState(null,'',`?orderName=${encodeURIComponent(currentName)}`);
-    renderDetail(); show('detail'); status();
+    renderDetail(); renderOrders(); show('detail'); status();
+    if (matchMedia('(max-width: 1100px)').matches) $('detailTitle').scrollIntoView({block:'start'});
   } catch (error) { status(error.message,true); }
 }
 function startEditor(newOrder = false) {
   if (loadDraft(localStorage) && !confirm('작성 중인 초안을 지우고 다른 오더를 편집할까요?')) return;
   if (newOrder) { draft = createOrder(); currentName = ''; currentSavedAt = ''; }
+  else if (selectedOrder) { draft = createOrder(selectedOrder.payload); currentName = selectedOrder.orderName; currentSavedAt = selectedOrder.savedAt; }
   $('orderName').value = currentName;
   renderEditor(); show('editor');
   status(WRITE_API_BASE ? '' : '새 쓰기 API 배포 전까지 저장할 수 없습니다.',!WRITE_API_BASE);
@@ -240,6 +181,7 @@ async function save() {
     });
     const data = await readApi(`getOrder?name=${encodeURIComponent(name)}`);
     if (!data?.payload) throw new Error('저장 후 재조회에 실패했습니다.');
+    selectedOrder = structuredClone(data);
     draft = createOrder(data.payload); currentName = name; currentSavedAt = data.savedAt;
     let draftCleared = true;
     try { clearDraft(localStorage); } catch { draftCleared = false; }
@@ -279,6 +221,13 @@ $('shareButton').addEventListener('click', async () => {
     else prompt('오더 링크를 복사하세요.',url.href);
   } catch (error) { if (error.name !== 'AbortError') status('링크 공유에 실패했습니다.',true); }
 });
+$('copyLinkButton').addEventListener('click', async () => {
+  const url = new URL(location.href); url.searchParams.set('orderName',selectedOrder.orderName);
+  try {
+    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.href); status('오더 링크를 복사했습니다.'); }
+    else prompt('오더 링크를 복사하세요.',url.href);
+  } catch { prompt('오더 링크를 복사하세요.',url.href); }
+});
 $('saveButton').addEventListener('click', save);
 $('orderName').addEventListener('input', persistDraft);
 $('resumeDraftButton').addEventListener('click', () => {
@@ -292,7 +241,7 @@ $('discardDraftButton').addEventListener('click', () => {
   try { clearDraft(localStorage); refreshDraftNotice(); status('작성 중이던 초안을 삭제했습니다.'); }
   catch { status('초안을 삭제하지 못했습니다. 브라우저 저장 공간 설정을 확인하세요.',true); }
 });
-const rosterEditor = setupRosterEditor({ readApi, writeApi, status, writable:Boolean(WRITE_API_BASE), onSaved:players => { roster = players; } });
+const rosterEditor = setupRosterEditor({ readApi, writeApi, status, writable:Boolean(WRITE_API_BASE), onSaved:players => { roster = players; if(view === 'editor') renderEditor(); } });
 $('changePasswordButton')?.addEventListener('click', changePassword);
 $('sheetSearch').addEventListener('input', renderSheet);
 $('closeSheet').addEventListener('click', closeSheet);
@@ -313,6 +262,7 @@ if (DEMO_MODE) {
 }
 async function changePassword(){ const oldPassword=prompt('현재 관리자 비밀번호'); if(!oldPassword)return; const newPassword=prompt('새 비밀번호 (4자 이상)'); if(!newPassword)return; const again=prompt('새 비밀번호 재입력'); if(newPassword!==again)return status('비밀번호가 일치하지 않습니다.',true); try { await writeApi('changePasswordV2',{oldPassword,newPassword}); status('비밀번호를 변경했습니다.'); } catch(error){ status(error.message,true); } }
 $('saveButton').disabled = !WRITE_API_BASE;
+renderDetail();
 refreshDraftNotice();
 Promise.allSettled([loadOrders().then(async () => {
   const linkedOrder = new URLSearchParams(location.search).get('orderName');

@@ -36,6 +36,75 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .player-add-row input,.player-add-row select{width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);padding:6px;font-size:14px}
 .player-add-row button{min-height:40px;padding:6px;white-space:nowrap;font-size:13px}
 .player-add-row .primary-button{justify-self:stretch}
+
+/* Existing order workspace, adapted to available screen width. */
+.orders-workspace{display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);gap:16px;align-items:start}
+.order-preview,.order-list-panel,.participant-panel,.ability-panel{min-width:0;padding:12px;border-radius:8px;box-shadow:none}
+.order-preview{display:grid;gap:12px}
+.order-preview h2{margin:0;text-align:center;font-size:22px;overflow-wrap:anywhere}
+.order-preview #detailDate{margin:-6px 0 0;text-align:center;font-size:12px}
+.order-preview .header-actions{justify-content:flex-start;gap:6px}
+.order-preview .header-actions button{padding:8px 12px}
+.order-preview .field{border-radius:8px;border-width:1px;box-shadow:none}
+.order-preview .position{box-shadow:none;border-radius:5px;min-width:0;width:27%;max-width:27%;padding:3px;color:#18314d}
+.order-preview .position small{font-size:12px}
+.order-preview .position select{width:100%;min-width:0;min-height:32px;padding:1px;font-size:12px;border:1px solid #bfcbd8;border-radius:4px;background:var(--card);color:var(--text)}
+.order-preview .interactive-field{min-height:260px}
+.order-tables{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:8px;align-items:start}
+.classic-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+.classic-table caption{font-size:14px;font-weight:800;padding:0 0 8px;text-align:center}
+.classic-table th,.classic-table td{border:1px solid var(--line);padding:6px 4px;text-align:center;overflow-wrap:anywhere;height:38px}
+.classic-table th{background:var(--blue-soft);color:var(--text);font-weight:700}
+.classic-table td{background:var(--card)}
+.classic-table select{width:100%;min-width:0;min-height:36px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--text);font-size:12px;padding:2px}
+.lineup-table th:first-child{width:40px}
+.lineup-table th:first-child,.lineup-table td:first-child{white-space:nowrap}
+.lineup-table th:last-child{width:43%}
+.waiting-table button{width:100%;min-height:36px;border:0;background:none;color:var(--text);padding:0;font-size:12px}
+.waiting-table .excluded{opacity:.55;text-decoration:line-through}
+.order-list-table th:first-child{width:auto;text-align:left}
+.order-list-table th:nth-child(2){width:104px}
+.order-list-table th:last-child{width:48px}
+.order-list-table .order-open{width:100%;min-height:36px;font-size:14px;overflow-wrap:anywhere;display:block}
+.order-list-table .selected-order td{background:var(--blue-soft)}
+.order-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:13px}
+.order-pagination button{padding:8px 12px}
+.order-edit-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.order-edit-toolbar label{font-weight:700;white-space:nowrap}
+.order-edit-toolbar input{width:260px;max-width:100%;flex:1 1 180px}
+.editor-workspace{display:grid;grid-template-columns:200px minmax(360px,440px) minmax(210px,1fr);gap:12px;align-items:start}
+.participant-panel h2,.ability-panel h2{font-size:16px;margin:0 0 12px}
+.participant-panel h2 small{color:var(--muted)}
+.participant-panel .add-row{margin-bottom:10px;gap:4px}
+.participant-panel .add-row select{min-width:0;font-size:12px;padding:4px}
+.participant-panel .add-row button{padding:6px;flex-shrink:0;font-size:12px}
+.participant-panel th:first-child{width:30px}.participant-panel th:last-child{width:40px}
+.participant-panel .text-button{padding:6px 0;font-size:12px}
+.ability-panel .hint{margin:0 0 12px;font-size:12px}
+.ability-panel thead th:first-child{width:52px}.ability-panel thead th:nth-child(2){width:36px}
+.ability-candidates{text-align:left!important}
+.ability-candidates button{border:1px solid var(--line);border-radius:4px;padding:7px 5px;margin:2px;background:var(--card);color:var(--text);font-size:12px;min-height:34px}
+.ability-candidates .ability-selected{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);font-weight:700}
+.ability-candidates .ability-assigned{opacity:.6}
+.outfield-choices{display:flex;gap:3px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:4px}
+.order-preview .hint{margin:0;font-size:12px}
+@media(min-width:1101px){.shell{max-width:1440px;grid-template-columns:130px minmax(0,1fr);gap:20px}}
+@media(max-width:1100px) and (min-width:721px){.orders-workspace{grid-template-columns:minmax(0,1fr)}.order-list-panel{grid-row:1}.editor-workspace{grid-template-columns:180px minmax(0,1fr)}.ability-panel{grid-column:1/-1}.order-preview{max-width:540px;width:100%;justify-self:center}}
+@media(max-width:720px){
+  .orders-workspace,.editor-workspace{grid-template-columns:minmax(0,1fr);gap:14px}
+  .order-list-panel{grid-row:1}
+  .order-preview,.order-list-panel,.participant-panel,.ability-panel{padding:10px}
+  .order-tables{grid-template-columns:minmax(0,1fr) 82px;gap:6px}
+  .classic-table{font-size:12px}
+  .classic-table th,.classic-table td{padding:4px 2px}
+  .lineup-table th:first-child{width:30px}
+  .order-edit-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto}
+  .order-edit-toolbar input{width:100%;min-width:0;padding:8px}
+  .order-edit-toolbar button{padding:8px;font-size:13px}
+  .participant-panel .add-row select{font-size:14px}
+  .participant-panel th:first-child{width:40px}.participant-panel th:last-child{width:54px}
+  .order-list-table th:nth-child(2){width:90px}.order-list-table th:last-child{width:40px}
+}
 .roster-save-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .roster-save-bar p{margin:0;font-size:13px;color:var(--muted)}
 .roster-save-actions{display:flex;gap:8px;flex-shrink:0}
