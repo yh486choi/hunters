@@ -19,3 +19,7 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 
 .player-admin-toolbar{display:flex;align-items:center;gap:12px}.player-admin-toolbar>.search-input{flex:1;min-width:0}.player-admin-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.player-admin-actions>*{white-space:nowrap}
 @media(max-width:720px){.player-admin-toolbar{display:grid;gap:10px}.player-admin-toolbar>.search-input{width:100%}.player-admin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:6px}.player-admin-actions>*{width:100%;min-width:0;padding-left:8px;padding-right:8px;font-size:12px}}
+
+.table-sort-button{border:0;background:transparent;color:inherit;font:inherit;font-weight:800;padding:2px 4px;cursor:pointer}.table-sort-button:hover{color:var(--text)}
+
+@media(max-width:720px){.player-admin-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}

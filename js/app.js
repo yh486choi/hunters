@@ -18,6 +18,7 @@ let currentName = '';
 let currentSavedAt = '';
 let view = 'home';
 let sheetPosition = '';
+let rosterSort = { field:'name', direction:1 };
 
 function status(message = '', error = false) {
   $('status').textContent = message;
@@ -94,15 +95,12 @@ function playerAbilityText(player) {
   return [main.length ? `주 ${main.join(' · ')}` : '', secondary.length ? `부 ${secondary.join(' · ')}` : ''].filter(Boolean).join(' / ') || '포지션 정보 없음';
 }
 function renderRoster() {
-  const query=$('playerSearch').value.trim().toLowerCase(); const sort=$('playerSort')?.value||'name'; const container=$('playerList'); container.replaceChildren();
-  const visible=roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>sort==='num'?String(a.num).localeCompare(String(b.num),'ko',{numeric:true})||a.name.localeCompare(b.name,'ko'):a.name.localeCompare(b.name,'ko'));
-  const table=document.createElement('table'); table.className='player-admin-table';
-  const headers=['\uC774\uB984','\uBC30\uBC88','P','C','1B','2B','3B','SS','OF','\uAD00\uB9AC'];
-  const thead=document.createElement('thead'); const headRow=document.createElement('tr'); headers.forEach(label=>{const th=document.createElement('th'); th.textContent=label; headRow.append(th);}); thead.append(headRow); table.append(thead);
-  const tbody=document.createElement('tbody');
-  visible.forEach(player=>{ const row=document.createElement('tr');
-    const name=document.createElement('td'); name.textContent=player.name; row.append(name);
-    const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
+  const query=$('playerSearch').value.trim().toLowerCase(); const container=$('playerList'); container.replaceChildren();
+  const fields=[['name','\uC774\uB984'],['num','\uBC30\uBC88'],...ABILITY_FIELDS.map(([key,label])=>[key,label])];
+  const visible=roster.filter(p=>p.name.toLowerCase().includes(query)||String(p.num).includes(query)).slice().sort((a,b)=>{ const av=a[rosterSort.field]??'', bv=b[rosterSort.field]??''; const numeric=rosterSort.field!=='name'; const result=numeric?(Number(av||0)-Number(bv||0)):String(av).localeCompare(String(bv),'ko',{numeric:true}); return (result||a.name.localeCompare(b.name,'ko'))*rosterSort.direction; });
+  const table=document.createElement('table'); table.className='player-admin-table'; const thead=document.createElement('thead'); const headRow=document.createElement('tr');
+  fields.push(['actions','\uAD00\uB9AC']); fields.forEach(([field,label])=>{ const th=document.createElement('th'); if(field==='actions'){ th.textContent=label; } else { const button=document.createElement('button'); button.type='button'; button.className='table-sort-button'; button.textContent=label+' '+(rosterSort.field===field?(rosterSort.direction===1?'▲':'▼'):'↕'); button.addEventListener('click',()=>{ if(rosterSort.field===field)rosterSort.direction*=-1; else {rosterSort.field=field;rosterSort.direction=1;} renderRoster(); }); th.append(button); } headRow.append(th); }); thead.append(headRow); table.append(thead);
+  const tbody=document.createElement('tbody'); visible.forEach(player=>{ const row=document.createElement('tr'); const name=document.createElement('td'); name.textContent=player.name; row.append(name); const num=document.createElement('td'); num.textContent=player.num||'—'; row.append(num);
     for(const [key] of ABILITY_FIELDS){ const cell=document.createElement('td'); cell.textContent=Number(player[key])===2?'\uC8FC':Number(player[key])===1?'\uBD80':'-'; cell.className=Number(player[key])===2?'primary-ability':Number(player[key])===1?'secondary-ability':''; row.append(cell); }
     const actions=document.createElement('td'); actions.className='table-actions'; const edit=document.createElement('button'); edit.type='button'; edit.className='text-button'; edit.textContent='\uC218\uC815'; edit.disabled=!WRITE_API_BASE; edit.addEventListener('click',()=>openPlayerForm(player)); const remove=document.createElement('button'); remove.type='button'; remove.className='text-button danger-button'; remove.textContent='\uC0AD\uC81C'; remove.disabled=!WRITE_API_BASE; remove.addEventListener('click',()=>deletePlayer(player.name)); actions.append(edit,remove); row.append(actions); tbody.append(row); });
   table.append(tbody); container.append(table);
