@@ -47,7 +47,7 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .order-preview .header-actions button{padding:8px 12px}
 .order-preview .field{border-radius:8px;border-width:1px;box-shadow:none}
 .order-preview .position{box-shadow:none;border-radius:5px;min-width:0;width:18.9%;max-width:18.9%;padding:3px;color:#18314d}
-#editorCapture .position{width:19.845%;max-width:19.845%}
+#editorCapture .position{width:20.83725%;max-width:20.83725%}
 .order-preview .position small{font-size:12px}
 .order-preview .position select{width:100%;min-width:0;min-height:32px;padding:1px;font-size:12px;border:1px solid #bfcbd8;border-radius:4px;background:var(--card);color:var(--text)}
 .order-preview .interactive-field{min-height:260px}
