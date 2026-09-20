@@ -1,3 +1,4 @@
+import {readGameForm,fillGameForm,scheduleText,gameTitle} from './game-meta.js';
 import { renderOrderField, renderOrderTables, renderParticipants, renderAbilities, renderOrderList } from './order-views.js';
 import {
   POSITIONS, createOrder, toPayload, validateOrder, assignPosition,
@@ -18,8 +19,8 @@ let orderRequest = 0;
 let roster = [];
 
 let draft = createOrder();
-let currentName = '';
-let currentSavedAt = '';
+let currentId = '';
+let currentVersion = '';
 let view = 'orders';
 let sheetPosition = '';
 
@@ -47,8 +48,8 @@ function show(next) {
   if (detail) next = 'orders';
   if (next === 'orders') {
     draft = createOrder(selectedOrder?.payload);
-    currentName = selectedOrder?.orderName || '';
-    currentSavedAt = selectedOrder?.savedAt || '';
+    currentId = selectedOrder?.id || '';
+    currentVersion = selectedOrder?.version || '';
     renderDetail();
   }
   view = next;
@@ -58,29 +59,23 @@ function show(next) {
   if (!detail && ['orders','players'].includes(next) && location.search) history.replaceState(null,'',location.pathname);
   window.scrollTo(0,0);
 }
-function dateText(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ko-KR', { dateStyle:'medium', timeStyle:'short' });
-}
 function refreshDraftNotice() {
   const saved = loadDraft(localStorage);
   $('draftNotice').hidden = !saved || view === 'editor';
   if (saved) {
-    const name = saved.orderName.trim() || '이름 없는 오더';
-    const when = dateText(saved.updatedAt);
-    $('draftNoticeText').textContent = `${name}${when ? ` · 마지막 저장 ${when}` : ''}`;
+    $('draftNoticeText').textContent = gameTitle(saved.game);
   }
 }
 function persistDraft() {
   try {
-    saveDraft(localStorage, { orderName:$('orderName').value, currentName, currentSavedAt, draft });
+    saveDraft(localStorage, { game:readGameForm(), currentId, currentVersion, draft });
     refreshDraftNotice();
   } catch {
     status('브라우저에 초안을 저장하지 못했습니다. 저장 공간 설정을 확인하세요.',true);
   }
 }
 function renderOrders() {
-  orderPage = renderOrderList(orders,orderPage,selectedOrder?.orderName,{onOpen:openOrder,onDelete:deleteOrder,onPage:page=>{orderPage=page;renderOrders();},writable:Boolean(WRITE_API_BASE)});
+  orderPage = renderOrderList(orders,orderPage,selectedOrder?.id,{onOpen:openOrder,onDelete:deleteOrder,onPage:page=>{orderPage=page;renderOrders();},writable:Boolean(WRITE_API_BASE)});
 }
 function displayName(name, state) {
   if (!name) return '';
@@ -88,15 +83,15 @@ function displayName(name, state) {
   return player?.num ? `${name} #${player.num}` : name;
 }
 function renderDetail() {
-  $('detailTitle').textContent = selectedOrder?.orderName || '\uC624\uB354\uB97C \uC120\uD0DD\uD558\uC138\uC694';
-  $('detailDate').textContent = dateText(selectedOrder?.savedAt);
+  $('detailTitle').textContent = selectedOrder ? selectedOrder.game.opponent || '상대팀 미정' : '경기를 선택하세요';
+  $('detailDate').textContent = selectedOrder ? scheduleText(selectedOrder.game) : '';
   for (const id of ['editButton','captureButton','copyLinkButton','shareButton']) $(id).disabled = !selectedOrder;
   const state = createOrder(selectedOrder?.payload);
   renderOrderField('detailField',state,roster);
   renderOrderTables(state,{roster});
 }
 function renderEditor() {
-  $('editorCaptureTitle').textContent = $('orderName').value.trim() || '미저장 오더';
+  renderGameHeading();
   const onAssign = (pos,name)=>mutate(()=>assignPosition(draft,pos,name));
   renderOrderField('editorField',draft,roster,onAssign);
   renderOrderTables(draft,{editable:true,roster,onAssign,onBatting:(index,name)=>mutate(()=>setBattingPlayer(draft,index,name)),onExcluded:(name,excluded)=>mutate(()=>setExcluded(draft,name,excluded))});
@@ -134,69 +129,66 @@ function renderSheet() {
       container.append(button);
     });
 }
-async function deleteOrder(name){ if(!confirm(name+' 오더를 삭제할까요?'))return; const password=prompt('Admin password'); if(!password)return; try { await writeApi('deleteOrderV2',{name,password}); orders=orders.filter(order=>order.orderName!==name); renderOrders(); if(selectedOrder?.orderName===name){selectedOrder=null;currentName='';currentSavedAt='';draft=createOrder();renderDetail();show('orders');} status('오더를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
-async function openOrder(name) {
+async function deleteOrder(id){const order=orders.find(order=>order.id===id);if(!order||!confirm(gameTitle(order.game)+' 경기를 삭제할까요?'))return; const password=prompt('관리자 비밀번호'); if(!password)return; try { await writeApi('deleteOrderV3',{id,password,expectedVersion:order.version}); orders=orders.filter(order=>order.id!==id); renderOrders(); if(selectedOrder?.id===id){selectedOrder=null;currentId='';currentVersion='';draft=createOrder();renderDetail();show('orders');} status('경기를 삭제했습니다.'); } catch(error){ status(error.message,true); } }
+async function openOrder(name,legacy=false) {
   const request = ++orderRequest;
   status('오더를 불러오는 중입니다.');
   try {
-    const data = await readApi(`getOrder?name=${encodeURIComponent(name)}`);
+    const data = await readApi(`getOrderV3?${legacy?'legacyName':'id'}=${encodeURIComponent(name)}`);
     if (request !== orderRequest) return;
     if (!data?.payload) throw new Error('오더 데이터가 없습니다.');
     selectedOrder = structuredClone(data);
     draft = createOrder(data.payload);
-    currentName = data.orderName || name;
-    currentSavedAt = data.savedAt || '';
-    history.replaceState(null,'',`?orderName=${encodeURIComponent(currentName)}`);
+    currentId = data.id || name;
+    currentVersion = data.version || '';
+    history.replaceState(null,'',`?game=${encodeURIComponent(currentId)}`);
     renderDetail(); renderOrders(); show('detail'); status();
     if (matchMedia('(max-width: 1100px)').matches) $('detailTitle').scrollIntoView({block:'start'});
   } catch (error) { status(error.message,true); }
 }
 function startEditor(newOrder = false) {
   if (loadDraft(localStorage) && !confirm('작성 중인 초안을 지우고 다른 오더를 편집할까요?')) return;
-  if (newOrder) { draft = createOrder(); currentName = ''; currentSavedAt = ''; }
-  else if (selectedOrder) { draft = createOrder(selectedOrder.payload); currentName = selectedOrder.orderName; currentSavedAt = selectedOrder.savedAt; }
-  $('orderName').value = currentName;
+  if (newOrder) { draft = createOrder(); currentId = crypto.randomUUID(); currentVersion = ''; }
+  else if (selectedOrder) { draft = createOrder(selectedOrder.payload); currentId = selectedOrder.id; currentVersion = selectedOrder.version; }
+  fillGameForm(newOrder?{}:selectedOrder?.game);
   renderEditor(); show('editor');
   status(WRITE_API_BASE ? '' : '새 쓰기 API 배포 전까지 저장할 수 없습니다.',!WRITE_API_BASE);
   persistDraft();
 }
 async function save() {
-  const name = $('orderName').value.trim();
-  if (!name) return status('오더명을 입력하세요.',true);
+  for(const id of ['gameDate','gameTime','opponent']) if(!$(id).reportValidity())return;
+  const game=readGameForm();
+  if(!game.opponent)return status('상대팀명을 입력하세요.',true);
   const errors = validateOrder(draft);
   if (errors.length) return status(errors.join(' '),true);
   if (!WRITE_API_BASE) return status('쓰기 API가 아직 배포되지 않아 저장할 수 없습니다.',true);
   const password = prompt('관리자 비밀번호를 입력하세요.');
   if (!password) return;
+  const id=currentId||crypto.randomUUID();currentId=id;
+  const payload=toPayload(draft),expectedVersion=currentVersion||null;
+  $('saveButton').disabled=true;
   try {
-    const existing = await readApi(`getOrder?name=${encodeURIComponent(name)}`);
-    const editingSameOrder = currentName === name && Boolean(currentSavedAt);
-    if (editingSameOrder && existing?.savedAt !== currentSavedAt) {
-      throw new Error('다른 곳에서 오더가 변경됐습니다. 최신 오더를 다시 불러온 뒤 수정하세요.');
-    }
-    if (existing && !editingSameOrder && !confirm('기존 오더를 덮어쓸까요?')) return;
     status('오더를 저장하는 중입니다.');
-    await writeApi('saveOrderV2',{
-      orderName:name, payload:toPayload(draft), password,
-      expectedSavedAt:editingSameOrder ? currentSavedAt : existing?.savedAt ?? null
-    });
-    const data = await readApi(`getOrder?name=${encodeURIComponent(name)}`);
-    if (!data?.payload) throw new Error('저장 후 재조회에 실패했습니다.');
+    const saved=await writeApi('saveOrderV3',{id,game,payload,password,expectedVersion});
+    currentVersion=saved.version;
+    const data={id,version:saved.version,game,payload:{...payload,game}};
     selectedOrder = structuredClone(data);
-    draft = createOrder(data.payload); currentName = name; currentSavedAt = data.savedAt;
+    draft = createOrder(data.payload);
     let draftCleared = true;
     try { clearDraft(localStorage); } catch { draftCleared = false; }
-    await loadOrders();
-    history.replaceState(null,'',`?orderName=${encodeURIComponent(currentName)}`);
+    let listLoaded=true;
+    try{await loadOrders();}catch{listLoaded=false;}
+    history.replaceState(null,'',`?game=${encodeURIComponent(currentId)}`);
     renderDetail(); show('detail');
-    status(draftCleared ? '저장 후 다시 불러왔습니다.' : '서버 저장은 완료됐지만 브라우저 초안을 지우지 못했습니다.',!draftCleared);
+    status(!listLoaded?'경기를 저장했지만 목록 재조회에 실패했습니다. 새로고침해 주세요.':draftCleared?'경기를 저장했습니다.':'서버 저장은 완료됐지만 브라우저 초안을 지우지 못했습니다.',!listLoaded||!draftCleared);
   } catch (error) { status(error.message,true); }
+  finally{$('saveButton').disabled=!WRITE_API_BASE;}
 }
 async function loadOrders() {
-  const data = await readApi('getOrders');
+  const data = await readApi('getOrdersV3');
   if (!Array.isArray(data)) throw new Error('오더 목록 형식이 올바르지 않습니다.');
   orders = data;
-  orders.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+  orders.sort((a,b) => `${b.game.date} ${b.game.time}`.localeCompare(`${a.game.date} ${a.game.time}`)||a.game.opponent.localeCompare(b.game.opponent,'ko'));
   renderOrders();
 }
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => show(button.dataset.view)));
@@ -204,7 +196,7 @@ $('newOrderButton').addEventListener('click', () => startEditor(true));
 $('editButton').addEventListener('click', () => startEditor(false));
 $('captureButton').addEventListener('click', async () => {
   $('captureButton').disabled = true;
-  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage(selectedOrder.payload,selectedOrder.orderName,roster); status('이미지 다운로드를 시작했습니다.'); }
+  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage(selectedOrder.payload,selectedOrder.game,roster); status('이미지 다운로드를 시작했습니다.'); }
   catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
   finally { $('captureButton').disabled = !selectedOrder; }
 });
@@ -212,35 +204,40 @@ $('captureDraftButton').addEventListener('click', async () => {
   $('captureDraftButton').disabled = true;
   try {
     status('초안 이미지를 만드는 중입니다.');
-    await downloadOrderImage(draft,$('orderName').value.trim() || '미저장 오더',roster);
+    await downloadOrderImage(draft,readGameForm(),roster);
     status('초안 이미지 다운로드를 시작했습니다.');
   } catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
   finally { $('captureDraftButton').disabled = false; }
 });
 $('shareButton').addEventListener('click', async () => {
   const url = new URL(location.href);
-  url.searchParams.set('orderName',currentName);
+  url.searchParams.set('game',currentId);
   try {
-    if (navigator.share) await navigator.share({ title:`삼성 헌터스 · ${currentName}`, url:url.href });
+    if (navigator.share) await navigator.share({ title:`삼성 헌터스 · ${gameTitle(selectedOrder.game)}`, url:url.href });
     else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.href); status('오더 링크를 복사했습니다.'); }
     else prompt('오더 링크를 복사하세요.',url.href);
   } catch (error) { if (error.name !== 'AbortError') status('링크 공유에 실패했습니다.',true); }
 });
 $('copyLinkButton').addEventListener('click', async () => {
-  const url = new URL(location.href); url.searchParams.set('orderName',selectedOrder.orderName);
+  const url = new URL(location.href); url.searchParams.set('game',selectedOrder.id);
   try {
     if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.href); status('오더 링크를 복사했습니다.'); }
     else prompt('오더 링크를 복사하세요.',url.href);
   } catch { prompt('오더 링크를 복사하세요.',url.href); }
 });
 $('saveButton').addEventListener('click', save);
-$('orderName').addEventListener('input', persistDraft);
-$('orderName').addEventListener('input', () => { $('editorCaptureTitle').textContent = $('orderName').value.trim() || '미저장 오더'; });
-$('resumeDraftButton').addEventListener('click', () => {
+function renderGameHeading(){const game=readGameForm();$('editorCaptureTitle').textContent=game.opponent||'상대팀 미정';$('editorSchedule').textContent=scheduleText(game);}
+for(const id of ['gameDate','gameTime','opponent'])$(id).addEventListener('input',()=>{renderGameHeading();persistDraft();});
+$('resumeDraftButton').addEventListener('click', async () => {
   const saved = loadDraft(localStorage);
   if (!saved) { refreshDraftNotice(); return status('이어 쓸 초안을 찾을 수 없습니다.',true); }
-  draft = saved.draft; currentName = saved.currentName; currentSavedAt = saved.currentSavedAt;
-  $('orderName').value = saved.orderName;
+  draft = saved.draft; currentId = saved.currentId; currentVersion = saved.currentVersion;
+  let game=saved.game;
+  if(saved.legacyName){
+    try{const previous=await readApi(`getOrderV3?legacyName=${encodeURIComponent(saved.legacyName)}`);if(!previous)throw new Error('기존 경기를 찾을 수 없습니다.');currentId=previous.id;game=previous.game;}
+    catch(error){return status(error.message,true);}
+  }
+  fillGameForm(game);
   renderEditor(); show('editor'); status('작성 중이던 오더를 불러왔습니다.');
 });
 $('discardDraftButton').addEventListener('click', () => {
@@ -270,8 +267,9 @@ $('saveButton').disabled = !WRITE_API_BASE;
 renderDetail();
 refreshDraftNotice();
 Promise.allSettled([loadOrders().then(async () => {
-  const linkedOrder = new URLSearchParams(location.search).get('orderName');
-  if (linkedOrder) await openOrder(linkedOrder);
+  const params=new URLSearchParams(location.search);
+  if(params.get('game'))await openOrder(params.get('game'));
+  else if(params.get('orderName'))await openOrder(params.get('orderName'),true);
 }),readApi('getPlayersV2').then(data => {
   if (!Array.isArray(data)) throw new Error('선수 목록 형식이 올바르지 않습니다.');
   rosterEditor.load(data);

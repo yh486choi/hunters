@@ -1,15 +1,16 @@
 import { createOrder } from './order-model.js';
 import { renderOrderField, renderOrderTables } from './order-views.js';
+import {scheduleText,gameTitle} from './game-meta.js';
 
 // Both entry points build the same read-only preview from the current data.
-export async function renderOrderImage(state,orderName,roster=[],{pixelRatio=2}={}) {
+export async function renderOrderImage(state,game,roster=[],{pixelRatio=2}={}) {
   const snapshot=createOrder(state), players=structuredClone(roster);
   const stage=document.createElement('section');
   stage.className='order-preview capture-export';
   stage.setAttribute('aria-hidden','true');stage.inert=true;
   const panel=document.getElementById('detailCapture').cloneNode(true);
-  panel.querySelector('#detailTitle').textContent=orderName||'미저장 오더';
-  panel.querySelector('#detailDate').remove();
+  panel.querySelector('#detailTitle').textContent=game?.opponent||'상대팀 미정';
+  panel.querySelector('#detailDate').textContent=scheduleText(game);
   renderOrderField(panel.querySelector('#detailField'),snapshot,players);
   renderOrderTables(snapshot,{roster:players,lineupBody:panel.querySelector('#detailLineup'),waitingBody:panel.querySelector('#detailWaiting')});
   panel.removeAttribute('id');panel.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
@@ -42,12 +43,12 @@ async function rasterizePanel(panel,pixelRatio) {
   return canvas;
 }
 
-export async function downloadOrderImage(state,orderName,roster) {
-  const canvas=await renderOrderImage(state,orderName,roster);
+export async function downloadOrderImage(state,game,roster) {
+  const canvas=await renderOrderImage(state,game,roster);
   const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('PNG 변환에 실패했습니다.')),'image/png'));
   const url=URL.createObjectURL(blob);
   const link=document.createElement('a');
-  link.download=`hunters_${String(orderName||'order').replace(/[\\/:*?"<>|]/g,'_')}.png`;
+  link.download=`hunters_${gameTitle(game).replace(/[\\/:*?"<>|]/g,'_')}.png`;
   link.href=url; document.body.append(link); link.click(); link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }

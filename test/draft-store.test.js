@@ -16,13 +16,13 @@ test('unfinished order and original edit target survive a reload', () => {
   const storage = memoryStorage();
   const draft = assignPosition(addPlayer(createOrder(), { name:'김민수', num:'7' }), 'SS', '김민수');
   saveDraft(storage, {
-    orderName:'수정 중인 오더', currentName:'기존 오더',
-    currentSavedAt:'2026-09-19T10:00:00.000Z', draft
+    game:{date:'2026-09-20',time:'12:00',opponent:'상대팀'}, currentId:'game-id',
+    currentVersion:'version-one', draft
   });
   const restored = loadDraft(storage);
-  assert.equal(restored.orderName, '수정 중인 오더');
-  assert.equal(restored.currentName, '기존 오더');
-  assert.equal(restored.currentSavedAt, '2026-09-19T10:00:00.000Z');
+  assert.deepEqual(restored.game,{date:'2026-09-20',time:'12:00',opponent:'상대팀'});
+  assert.equal(restored.currentId, 'game-id');
+  assert.equal(restored.currentVersion, 'version-one');
   assert.equal(restored.draft.positions.SS, '김민수');
   clearDraft(storage);
   assert.equal(loadDraft(storage), null);
@@ -37,4 +37,13 @@ test('corrupt and incompatible drafts are ignored', () => {
   storage.setItem(DRAFT_KEY, JSON.stringify({ version:1, orderName:'', currentName:'', currentSavedAt:'',
     payload:{players:[{name:'김민수'}], positions:{SS:'없는 선수'}, startingList:[]} }));
   assert.equal(loadDraft(storage), null);
+});
+
+test('old drafts preserve the lineup and version for safe migration',()=>{
+  const storage=memoryStorage();
+  storage.setItem(DRAFT_KEY,JSON.stringify({version:1,orderName:'old title',currentName:'NBL_260915_레퍼즈',currentSavedAt:'original-version',payload:{players:[],positions:{},startingList:[]}}));
+  const restored=loadDraft(storage);
+  assert.equal(restored.legacyName,'NBL_260915_레퍼즈');
+  assert.equal(restored.currentVersion,'original-version');
+  assert.equal(restored.draft.startingList.length,10);
 });

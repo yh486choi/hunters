@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import contract from './firebase/functions-v2/order-contract.js';
 import rosterEdit from './firebase/functions-v2/roster-edit.js';
+import games from './firebase/functions-v2/game-contract.js';
 import { createOrder, toPayload } from './js/order-model.js';
 import { normalizeRoster } from './js/player-roster.js';
 
@@ -47,16 +48,32 @@ async function requestBody(req) {
 async function api(req,res,url) {
   const name = url.pathname.slice('/api/'.length);
   if (req.method === 'GET') {
+    const records=[...orders.values()].map(o=>games.record([o.orderName,o.savedAt,JSON.stringify(o.payload)]));
+    if(name==='getOrdersV3')return json(res,200,records.map(({payload,...summary})=>summary));
+    if(name==='getOrderV3')return json(res,200,records.find(o=>o.id===(url.searchParams.has('legacyName')?games.toId(url.searchParams.get('legacyName')):url.searchParams.get('id')))||null);
     if (name === 'getPlayers' || name === 'getPlayersV2') return json(res,200,players);
     if (name === 'getOrders') return json(res,200,[...orders.values()].map(({orderName,savedAt}) => ({orderName,savedAt})));
     if (name === 'getOrder') return json(res,200,orders.get(url.searchParams.get('name')) || null);
     return json(res,404,{error:'API를 찾을 수 없습니다.'});
   }
-  if (req.method !== 'POST' || !['saveOrderV2','updatePlayersV2'].includes(name)) return json(res,405,{status:'실패',error:'허용되지 않은 요청입니다.'});
+  if (req.method !== 'POST' || !['saveOrderV2','saveOrderV3','deleteOrderV3','updatePlayersV2'].includes(name)) return json(res,405,{status:'실패',error:'허용되지 않은 요청입니다.'});
   let body;
   try { body = await requestBody(req); }
   catch { return json(res,400,{status:'실패',error:'요청 형식이 올바르지 않습니다.'}); }
   if (body.password !== demoPassword) return json(res,403,{status:'실패',error:'데모 비밀번호가 일치하지 않습니다.'});
+  if(name==='saveOrderV3'||name==='deleteOrderV3'){
+    let key;try{key=games.toKey(body.id);}catch(error){return json(res,400,{status:'실패',error:error.message});}
+    if(name==='saveOrderV3'){
+      const invalid=games.validateGame(body.game)||contract.validatePayload(body.payload);
+      if(invalid)return json(res,400,{status:'실패',error:invalid});
+    }else if(typeof body.expectedVersion!=='string')return json(res,400,{status:'실패',error:'경기 버전이 필요합니다.'});
+    const target=contract.resolveSaveTarget([...orders.values()].map(o=>[o.orderName,o.savedAt]),key,body.expectedVersion);
+    if(target.error||(body.id.startsWith('legacy_')&&target.rowNumber<0))return json(res,409,{status:'실패',error:target.error||'기존 경기를 찾을 수 없습니다.'});
+    if(name==='deleteOrderV3'){orders.delete(key);return json(res,200,{status:'성공'});}
+    const version=new Date().toISOString();
+    orders.set(key,{orderName:key,savedAt:version,payload:{...body.payload,game:{...body.game,opponent:body.game.opponent.trim()}}});
+    return json(res,200,{status:'성공',id:body.id,version});
+  }
   if (name === 'updatePlayersV2') {
     try {
       const next = normalizeRoster(body.players);

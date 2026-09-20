@@ -160,3 +160,5 @@ exports.getPlayersV2 = functions.https.onRequest(async (req,res) => {
     return res.json(rows.map(row=>({name:row[0]||'',num:row[1]||'',p:row[2]||'0',c:row[3]||'0','1b':row[4]||'0','2b':row[5]||'0','3b':row[6]||'0',ss:row[7]||'0',of:row[8]||'0',throws:row[9]||'',bats:row[10]||''})));
   } catch(error) { console.error(error); return res.status(500).json({status:'\uC2E4\uD328',error:'Read error.'}); }
 });
+
+Object.assign(exports, require('./game-api')({functions,withCors,auth,google,spreadsheetId:SPREADSHEET_ID,sheetName:SHEET_ORDERS}));

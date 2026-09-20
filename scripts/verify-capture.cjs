@@ -8,9 +8,10 @@ const {PNG}=require(path.join(deps,'pngjs'));
   const players=[{name:'김민수',num:'7',throws:'R',bats:'L',ss:'2'},{name:'박철수',num:'12',throws:'L',bats:'L',of:'2'},{name:'대기선수',num:'30',throws:'R',bats:'R'}];
   const payload={players,positions:{SS:'김민수',LF:'박철수'},startingList:[{name:'김민수'}],excludedPlayers:['대기선수']};
   await page.route('**/api/getPlayersV2',r=>r.fulfill({json:players}));
-  await page.route('**/api/getOrders',r=>r.fulfill({json:[{orderName:'캡처 비교',savedAt:'2026-09-20T00:00:00Z'}]}));
-  await page.route('**/api/getOrder?*',r=>r.fulfill({json:{orderName:'캡처 비교',savedAt:'2026-09-20T00:00:00Z',payload}}));
-  await page.goto('http://127.0.0.1:8765');await page.locator('#allOrders .order-open').click();
+  const record={id:'6f26fa20-cf9d-4e72-9147-4cc8293c7901',version:'v1',game:{date:'2026-09-20',time:'12:00',opponent:'캡처 상대팀'}};
+  await page.route('**/api/getOrdersV3',r=>r.fulfill({json:[record]}));
+  await page.route('**/api/getOrderV3?*',r=>r.fulfill({json:{...record,payload}}));
+  await page.goto('http://127.0.0.1:8765');await page.locator('#allOrders .order-open').first().click();
   await page.waitForFunction(()=>!document.getElementById('editButton').disabled);
   await page.evaluate(async()=>{
     await import('/vendor/html-to-image.js');
@@ -43,7 +44,7 @@ const {PNG}=require(path.join(deps,'pngjs'));
   const panels=await page.evaluate(()=>capturedPanels);
   assert.equal(panels.length,8);
   for(const p of panels){assert.equal(p.controls,0);assert.equal(p.rows,10);assert.equal(p.highlight,1);assert.equal(p.hands,'\uC6B0\uC88C');}
-  await page.locator('#orderName').fill('수정 중인 오더');
+  await page.locator('#opponent').fill('수정 상대팀');
   await page.locator('[data-position="SS"]').selectOption('대기선수');
   const changedDownload=page.waitForEvent('download');await page.locator('#captureDraftButton').click();
   const changed=fs.readFileSync(await (await changedDownload).path());

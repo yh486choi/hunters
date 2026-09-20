@@ -2,13 +2,13 @@ import { createOrder, toPayload, validateOrder } from './order-model.js';
 
 export const DRAFT_KEY = 'hunters-order-draft-v1';
 
-export function saveDraft(storage, { orderName, currentName, currentSavedAt, draft }) {
+export function saveDraft(storage, { game, currentId, currentVersion, draft }) {
   const snapshot = {
-    version: 1,
+    version: 2,
     updatedAt: new Date().toISOString(),
-    orderName: String(orderName || ''),
-    currentName: String(currentName || ''),
-    currentSavedAt: String(currentSavedAt || ''),
+    game:{date:game?.date||'',time:game?.time||'',opponent:game?.opponent||''},
+    currentId: String(currentId || ''),
+    currentVersion: String(currentVersion || ''),
     payload: toPayload(draft)
   };
   storage.setItem(DRAFT_KEY, JSON.stringify(snapshot));
@@ -19,15 +19,18 @@ export function loadDraft(storage) {
   let saved;
   try { saved = JSON.parse(storage.getItem(DRAFT_KEY)); }
   catch { return null; }
-  if (saved?.version !== 1 || typeof saved.orderName !== 'string' ||
-      typeof saved.currentName !== 'string' || typeof saved.currentSavedAt !== 'string' ||
+  if (![1,2].includes(saved?.version) ||
       !saved.payload || !Array.isArray(saved.payload.players) ||
       !Array.isArray(saved.payload.startingList) || !saved.payload.positions) return null;
   try {
     const draft = createOrder(saved.payload);
     if (validateOrder(draft).length) return null;
-    return { orderName:saved.orderName, currentName:saved.currentName,
-      currentSavedAt:saved.currentSavedAt, updatedAt:saved.updatedAt, draft };
+    if(saved.version===1){
+      if(typeof saved.currentName!=='string'||typeof saved.currentSavedAt!=='string')return null;
+      return {game:{date:'',time:'',opponent:''},currentId:'',currentVersion:saved.currentSavedAt,legacyName:saved.currentName,draft};
+    }
+    if(!saved.game||['date','time','opponent'].some(key=>typeof saved.game[key]!=='string')||typeof saved.currentId!=='string'||typeof saved.currentVersion!=='string')return null;
+    return {game:saved.game,currentId:saved.currentId,currentVersion:saved.currentVersion,draft};
   } catch { return null; }
 }
 

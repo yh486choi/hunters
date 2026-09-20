@@ -1,5 +1,6 @@
 import { POSITIONS, POSITION_LABELS, waitingPlayers } from './order-model.js';
 import { ABILITY_FIELDS } from './player-roster.js';
+import { scheduleText } from './game-meta.js';
 const $ = id => document.getElementById(id);
 const coords = {CF:[50,15],LF:[18,29],RF:[82,29],SS:[32,47],'2B':[68,47],'3B':[17,65],'1B':[83,65],P:[50,68],C:[50,87],DH:[84,88]};
 const nameText = (name,state) => { const p=state.players.find(p=>p.name===name); return name ? `${name}${p?.num ? `(${p.num})` : ''}` : ''; };
@@ -7,10 +8,9 @@ export function renderOrderList(orders,page,selected,{onOpen,onDelete,onPage,wri
   const pages=Math.max(1,Math.ceil(orders.length/10)); page=Math.min(page,pages-1);
   const body=$('allOrders');body.replaceChildren();
   for(const order of orders.slice(page*10,page*10+10)) {
-    const row=document.createElement('tr');row.classList.toggle('selected-order',order.orderName===selected);
-    const open=document.createElement('button');open.type='button';open.className='order-open';open.textContent=order.orderName;open.addEventListener('click',()=>onOpen(order.orderName));cell(row).append(open);
-    const date=new Date(order.savedAt);cell(row,Number.isNaN(date.getTime())?'':date.toLocaleDateString('ko-KR'));
-    const remove=document.createElement('button');remove.type='button';remove.className='text-button danger-button';remove.textContent='삭제';remove.disabled=!writable;remove.addEventListener('click',()=>onDelete(order.orderName));cell(row).append(remove);body.append(row);
+    const row=document.createElement('tr');row.classList.toggle('selected-order',order.id===selected);
+    for(const label of [scheduleText(order.game),order.game.opponent||'상대팀 미정']){const open=document.createElement('button');open.type='button';open.className='order-open';open.textContent=label;open.addEventListener('click',()=>onOpen(order.id));cell(row).append(open);}
+    const remove=document.createElement('button');remove.type='button';remove.className='text-button danger-button';remove.textContent='삭제';remove.disabled=!writable;remove.addEventListener('click',()=>onDelete(order.id));cell(row).append(remove);body.append(row);
   }
   if(!orders.length){const row=document.createElement('tr');cell(row,'표시할 오더가 없습니다.').colSpan=3;body.append(row);}
   const nav=$('orderPagination');nav.replaceChildren();
