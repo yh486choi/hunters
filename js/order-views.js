@@ -47,7 +47,7 @@ export function renderOrderTables(state,{editable=false,roster=[],onBatting,onAs
     if (!name) return '—';
     const player = roster.find(p=>p.name===name);
     const label = value => value==='R'?'우':value==='L'?'좌':'-';
-    return `${label(player?.throws)}/${label(player?.bats)}`;
+    return `${label(player?.throws)}${label(player?.bats)}`;
   };
   const prefix=editable?'editor':'detail'; const body=$(prefix+'Lineup'); body.replaceChildren();
   state.startingList.forEach((entry,index)=>{
