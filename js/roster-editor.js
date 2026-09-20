@@ -54,7 +54,7 @@ export function setupRosterEditor({ readApi, writeApi, status, writable, onSaved
         input.dataset.field = key;
         if (input.tagName === 'INPUT') { input.type = 'text'; input.maxLength = key === 'name' ? 40 : 20; }
         else {
-          const options = HAND_FIELDS.some(([field]) => field === key) ? [['','-'],['R','우'],['L','좌']] : [['0','-'],['1','부'],['2','주']];
+          const options = HAND_FIELDS.some(([field]) => field === key) ? [['','-'],['R','우'],['L','좌']] : [['0','🔴 -'],['1','🟡 부'],['2','🟢 주']];
           options.forEach(([value,text]) => input.add(new Option(text,value)));
         }
         input.value = entry.player[key]; input.disabled = busy || !writable;
@@ -78,7 +78,7 @@ export function setupRosterEditor({ readApi, writeApi, status, writable, onSaved
   $('newPlayerButton').addEventListener('click',() => {
     $('playerForm').reset();
     for (const [id,group,options] of [
-      ['playerAbilityFields',ABILITY_FIELDS,[['0','-'],['1','부'],['2','주']]],
+      ['playerAbilityFields',ABILITY_FIELDS,[['0','🔴 -'],['1','🟡 부'],['2','🟢 주']]],
       ['playerHandFields',HAND_FIELDS,[['','-'],['R','우'],['L','좌']]]
     ]) {
       $(id).replaceChildren();

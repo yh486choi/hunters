@@ -42,7 +42,13 @@ export function renderOrderField(id,state,roster,onAssign) {
     field.append(box);
   }
 }
-export function renderOrderTables(state,{editable=false,onBatting,onAssign,onExcluded}={}) {
+export function renderOrderTables(state,{editable=false,roster=[],onBatting,onAssign,onExcluded}={}) {
+  const handText = name => {
+    if (!name) return '—';
+    const player = roster.find(p=>p.name===name);
+    const label = value => value==='R'?'우':value==='L'?'좌':'-';
+    return `${label(player?.throws)}/${label(player?.bats)}`;
+  };
   const prefix=editable?'editor':'detail'; const body=$(prefix+'Lineup'); body.replaceChildren();
   state.startingList.forEach((entry,index)=>{
     const row=document.createElement('tr'); cell(row,index===9?'투수':String(index+1));
@@ -58,6 +64,7 @@ export function renderOrderTables(state,{editable=false,onBatting,onAssign,onExc
         select.disabled=!entry.name; select.dataset.lineupPosition=String(index); cell(row).append(select);
       }
     } else { cell(row,nameText(entry.name,state)||'—'); cell(row,entry.pos||'—'); }
+    cell(row,handText(entry.name)).className='handedness-cell';
     body.append(row);
   });
   const waiting=$(prefix+'Waiting'); waiting.replaceChildren();
@@ -67,9 +74,13 @@ export function renderOrderTables(state,{editable=false,onBatting,onAssign,onExc
     const td=cell(row);
     if(player) {
       const excluded=state.excludedPlayers.includes(player.name); row.classList.toggle('excluded',excluded);
+      const assigned = POSITIONS.filter(pos=>state.positions[pos]===player.name);
+      row.classList.toggle('position-waiting',assigned.length>0);
+      if (assigned.length) row.title=`${assigned.join('/')} 배치 · 타순 미정`;
       if(editable) { const button=document.createElement('button'); button.type='button'; button.textContent=nameText(player.name,state); button.setAttribute('aria-pressed',String(excluded)); button.setAttribute('aria-label',`${player.name} 대기 제외 전환`); button.addEventListener('click',()=>onExcluded(player.name,!excluded)); td.append(button); }
       else td.textContent=nameText(player.name,state);
     } else td.textContent='\u00a0';
+    cell(row,player?handText(player.name):'\u00a0').className='handedness-cell';
     waiting.append(row);
   }
 }

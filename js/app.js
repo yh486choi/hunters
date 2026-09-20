@@ -93,12 +93,12 @@ function renderDetail() {
   for (const id of ['editButton','captureButton','copyLinkButton','shareButton']) $(id).disabled = !selectedOrder;
   const state = createOrder(selectedOrder?.payload);
   renderOrderField('detailField',state,roster);
-  renderOrderTables(state);
+  renderOrderTables(state,{roster});
 }
 function renderEditor() {
   const onAssign = (pos,name)=>mutate(()=>assignPosition(draft,pos,name));
   renderOrderField('editorField',draft,roster,onAssign);
-  renderOrderTables(draft,{editable:true,onAssign,onBatting:(index,name)=>mutate(()=>setBattingPlayer(draft,index,name)),onExcluded:(name,excluded)=>mutate(()=>setExcluded(draft,name,excluded))});
+  renderOrderTables(draft,{editable:true,roster,onAssign,onBatting:(index,name)=>mutate(()=>setBattingPlayer(draft,index,name)),onExcluded:(name,excluded)=>mutate(()=>setExcluded(draft,name,excluded))});
   renderParticipants(draft,roster,name=>mutate(()=>removePlayer(draft,name)));
   renderAbilities(draft,roster,onAssign);
 }
@@ -241,8 +241,7 @@ $('discardDraftButton').addEventListener('click', () => {
   try { clearDraft(localStorage); refreshDraftNotice(); status('작성 중이던 초안을 삭제했습니다.'); }
   catch { status('초안을 삭제하지 못했습니다. 브라우저 저장 공간 설정을 확인하세요.',true); }
 });
-const rosterEditor = setupRosterEditor({ readApi, writeApi, status, writable:Boolean(WRITE_API_BASE), onSaved:players => { roster = players; if(view === 'editor') renderEditor(); } });
-$('changePasswordButton')?.addEventListener('click', changePassword);
+const rosterEditor = setupRosterEditor({ readApi, writeApi, status, writable:Boolean(WRITE_API_BASE), onSaved:players => { roster = players; renderDetail(); if(view === 'editor') renderEditor(); } });
 $('sheetSearch').addEventListener('input', renderSheet);
 $('closeSheet').addEventListener('click', closeSheet);
 $('sheetBackdrop').addEventListener('click', closeSheet);
