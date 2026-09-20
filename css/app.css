@@ -46,7 +46,7 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 .order-preview .header-actions{justify-content:flex-start;gap:6px}
 .order-preview .header-actions button{padding:8px 12px}
 .order-preview .field{border-radius:8px;border-width:1px;box-shadow:none}
-.order-preview .position{box-shadow:none;border-radius:5px;min-width:0;width:27%;max-width:27%;padding:3px;color:#18314d}
+.order-preview .position{box-shadow:none;border-radius:5px;min-width:0;width:18.9%;max-width:18.9%;padding:3px;color:#18314d}
 .order-preview .position small{font-size:12px}
 .order-preview .position select{width:100%;min-width:0;min-height:32px;padding:1px;font-size:12px;border:1px solid #bfcbd8;border-radius:4px;background:var(--card);color:var(--text)}
 .order-preview .interactive-field{min-height:260px}
@@ -122,6 +122,14 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 /* Handedness and field-assigned waiting players. */
 .order-preview{container-type:inline-size}
 .order-capture{display:grid;gap:12px;min-width:0;background:var(--card);color:var(--text)}
+.capture-export{position:fixed;left:-10000px;top:0;width:440px;padding:12px;background:var(--card);color:var(--text);pointer-events:none}
+.capture-export .order-tables{grid-template-columns:minmax(0,1fr) 126px;gap:8px}
+.capture-export .classic-table{font-size:13px}
+.capture-export .classic-table th,.capture-export .classic-table td{padding:6px 4px}
+.capture-export .lineup-table th:first-child{width:34px}
+.capture-export .position{padding:3px}
+.capture-export .position strong{font-size:13px}
+.capture-export .position small{font-size:12px}
 .order-tables{grid-template-columns:minmax(0,1fr) 126px}
 .lineup-table th:first-child{width:34px}
 .lineup-table th:nth-child(3){width:34%}

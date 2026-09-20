@@ -1,14 +1,31 @@
-// Capture the rendered panel, including current form values and computed styles.
-export async function renderOrderImage(panel,{pixelRatio=2}={}) {
-  if (!(panel instanceof HTMLElement) || !panel.getClientRects().length) {
-    throw new Error('캡처할 오더 화면이 없습니다.');
-  }
+import { createOrder } from './order-model.js';
+import { renderOrderField, renderOrderTables } from './order-views.js';
+
+// Both entry points build the same read-only preview from the current data.
+export async function renderOrderImage(state,orderName,roster=[],{pixelRatio=2}={}) {
+  const snapshot=createOrder(state), players=structuredClone(roster);
+  const stage=document.createElement('section');
+  stage.className='order-preview capture-export';
+  stage.setAttribute('aria-hidden','true');stage.inert=true;
+  const panel=document.getElementById('detailCapture').cloneNode(true);
+  panel.querySelector('#detailTitle').textContent=orderName||'미저장 오더';
+  panel.querySelector('#detailDate').remove();
+  renderOrderField(panel.querySelector('#detailField'),snapshot,players);
+  renderOrderTables(snapshot,{roster:players,lineupBody:panel.querySelector('#detailLineup'),waitingBody:panel.querySelector('#detailWaiting')});
+  panel.removeAttribute('id');panel.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+  stage.append(panel);document.body.append(stage);
+  try { return await rasterizePanel(stage,pixelRatio); }
+  finally { stage.remove(); }
+}
+
+async function rasterizePanel(panel,pixelRatio) {
   await document.fonts.ready;
   await import('../vendor/html-to-image.js');
   const rect=panel.getBoundingClientRect();
   const svgUrl=await globalThis.htmlToImage.toSvg(panel,{
     width:rect.width,height:rect.height,pixelRatio,
-    backgroundColor:getComputedStyle(panel).backgroundColor,skipFonts:true
+    backgroundColor:getComputedStyle(panel).backgroundColor,skipFonts:true,
+    style:{position:'static',inset:'auto',insetInline:'auto',insetBlock:'auto'}
   });
   // Computed table height includes its caption. Reapplying that height to the
   // cloned table counts the caption twice and stretches/crops the last rows.
@@ -25,8 +42,8 @@ export async function renderOrderImage(panel,{pixelRatio=2}={}) {
   return canvas;
 }
 
-export async function downloadOrderImage(panel,orderName) {
-  const canvas=await renderOrderImage(panel);
+export async function downloadOrderImage(state,orderName,roster) {
+  const canvas=await renderOrderImage(state,orderName,roster);
   const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('PNG 변환에 실패했습니다.')),'image/png'));
   const url=URL.createObjectURL(blob);
   const link=document.createElement('a');

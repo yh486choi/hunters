@@ -27,7 +27,7 @@ function selector(label,options,value,onChange) {
   select.value=value; select.addEventListener('change',()=>onChange(select.value)); return select;
 }
 export function renderOrderField(id,state,roster,onAssign) {
-  const field=$(id); field.replaceChildren();
+  const field=typeof id==='string'?$(id):id; field.replaceChildren();
   for(const pos of POSITIONS) {
     const box=document.createElement('div'); box.className='position';
     box.style.left=coords[pos][0]+'%'; box.style.top=coords[pos][1]+'%';
@@ -42,14 +42,14 @@ export function renderOrderField(id,state,roster,onAssign) {
     field.append(box);
   }
 }
-export function renderOrderTables(state,{editable=false,roster=[],onBatting,onAssign,onExcluded}={}) {
+export function renderOrderTables(state,{editable=false,roster=[],lineupBody,waitingBody,onBatting,onAssign,onExcluded}={}) {
   const handText = name => {
     if (!name) return '—';
     const player = roster.find(p=>p.name===name);
     const label = value => value==='R'?'우':value==='L'?'좌':'-';
     return `${label(player?.throws)}${label(player?.bats)}`;
   };
-  const prefix=editable?'editor':'detail'; const body=$(prefix+'Lineup'); body.replaceChildren();
+  const prefix=editable?'editor':'detail'; const body=lineupBody||$(prefix+'Lineup'); body.replaceChildren();
   state.startingList.forEach((entry,index)=>{
     const row=document.createElement('tr'); cell(row,index===9?'투수':String(index+1));
     if(editable) {
@@ -67,7 +67,7 @@ export function renderOrderTables(state,{editable=false,roster=[],onBatting,onAs
     cell(row,handText(entry.name)).className='handedness-cell';
     body.append(row);
   });
-  const waiting=$(prefix+'Waiting'); waiting.replaceChildren();
+  const waiting=waitingBody||$(prefix+'Waiting'); waiting.replaceChildren();
   const players=waitingPlayers(state).sort((a,b)=>Number(state.excludedPlayers.includes(a.name))-Number(state.excludedPlayers.includes(b.name))||a.name.localeCompare(b.name,'ko'));
   for(let i=0;i<Math.max(10,players.length);i++) {
     const row=document.createElement('tr'), player=players[i];

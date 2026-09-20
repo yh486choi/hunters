@@ -12,23 +12,42 @@ const {PNG}=require(path.join(deps,'pngjs'));
   await page.route('**/api/getOrder?*',r=>r.fulfill({json:{orderName:'캡처 비교',savedAt:'2026-09-20T00:00:00Z',payload}}));
   await page.goto('http://127.0.0.1:8765');await page.locator('#allOrders .order-open').click();
   await page.waitForFunction(()=>!document.getElementById('editButton').disabled);
+  await page.evaluate(async()=>{
+    await import('/vendor/html-to-image.js');
+    const original=htmlToImage.toSvg;
+    window.capturedPanels=[];
+    htmlToImage.toSvg=(node,options)=>{
+      capturedPanels.push({controls:node.querySelectorAll('select,input,button').length,rows:node.querySelectorAll('.lineup-table tbody tr').length,highlight:node.querySelectorAll('.position-waiting').length,hands:node.querySelector('.handedness-cell').textContent});
+      return original(node,options);
+    };
+  });
+  const baseline={};
   for(const editable of [false,true]) {
-    if(editable){await page.locator('#editButton').click();await page.locator('#orderName').fill('작성 중 캡처');}
-    const id=editable?'editorCapture':'detailCapture';
+    if(editable) await page.locator('#editButton').click();
     for(const width of [1280,390]) for(const dark of [false,true]) {
       await page.setViewportSize({width,height:1000});await page.evaluate(dark=>document.body.classList.toggle('dark',dark),dark);
-      const stem=path.join(process.env.TEMP,`hunters-capture-${editable?'edit':'view'}-${width}-${dark?'dark':'light'}`);
-      const data=await page.evaluate(async id=>{const {renderOrderImage}=await import('/js/capture.js');return (await renderOrderImage(document.getElementById(id),{pixelRatio:1})).toDataURL();},id);
-      const actual=Buffer.from(data.split(',')[1],'base64');fs.writeFileSync(stem+'.png',actual);
-      const reference=await page.locator('#'+id).screenshot({path:stem+'-screen.png',style:'.topbar,.bottom-nav{visibility:hidden!important}'});
-      const a=PNG.sync.read(actual),b=PNG.sync.read(reference);let diff=0,count=0;
-      for(let y=0;y<Math.min(a.height,b.height);y++)for(let x=0;x<Math.min(a.width,b.width);x++)for(let c=0;c<3;c++){diff+=Math.abs(a.data[(y*a.width+x)*4+c]-b.data[(y*b.width+x)*4+c]);count++;}
-      console.log(id,width,dark?'dark':'light',`${a.width}x${a.height}`,`screen ${b.width}x${b.height}`,`mean pixel delta ${(diff/count).toFixed(2)}`);
-      assert.ok(Math.abs(a.width-b.width)<=1&&Math.abs(a.height-b.height)<=1,'Panel dimensions match');
-      assert.ok(diff/count<2,'Captured layout/colors/text closely match browser screenshot');
+      const field=page.locator(editable?'#editorField':'#detailField');
+      const ratio=await field.evaluate(el=>el.querySelector('.position').getBoundingClientRect().width/(el.clientWidth));
+      assert.ok(Math.abs(ratio-.189)<.002,'Position box is 70% of previous 27%');
+      const pending=page.waitForEvent('download');await page.locator(editable?'#captureDraftButton':'#captureButton').click();
+      const download=await pending;const png=fs.readFileSync(await download.path());const decoded=PNG.sync.read(png);
+      assert.equal(decoded.width,880);
+      let green=0;
+      for(let i=0;i<decoded.data.length;i+=4) if(decoded.data[i+3]>0&&decoded.data[i+1]>decoded.data[i]*1.3&&decoded.data[i+1]>decoded.data[i+2]*1.3) green++;
+      assert.ok(green>10000,'Field image must be rendered, not a blank PNG');
+      if(!baseline[dark]) baseline[dark]=png;
+      else assert.deepEqual(png,baseline[dark],'Same data/theme exports identical PNG across viewing/editing and desktop/mobile');
+      fs.writeFileSync(path.join(process.env.TEMP,'hunters-standard-'+(dark?'dark':'light')+'.png'),png);
     }
-    const download=page.waitForEvent('download');await page.locator(editable?'#captureDraftButton':'#captureButton').click();
-    assert.ok((await download).suggestedFilename().endsWith('.png'));
   }
-  assert.deepEqual(errors,[]);console.log('PASS: displayed DOM vs PNG, 8 width/theme/view cases, both downloads, no JS errors');
+  const panels=await page.evaluate(()=>capturedPanels);
+  assert.equal(panels.length,8);
+  for(const p of panels){assert.equal(p.controls,0);assert.equal(p.rows,10);assert.equal(p.highlight,1);assert.equal(p.hands,'\uC6B0\uC88C');}
+  await page.locator('#orderName').fill('수정 중인 오더');
+  await page.locator('[data-position="SS"]').selectOption('대기선수');
+  const changedDownload=page.waitForEvent('download');await page.locator('#captureDraftButton').click();
+  const changed=fs.readFileSync(await (await changedDownload).path());
+  assert.notDeepEqual(changed,baseline[true],'Edited unsaved data must be exported');
+  assert.equal(await page.locator('.capture-export').count(),0);
+  assert.deepEqual(errors,[]);console.log('PASS: 8 identical read-only exports across entry points/screen widths; theme, handedness, highlight, 70% box width, cleanup and downloads');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

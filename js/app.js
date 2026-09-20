@@ -204,7 +204,7 @@ $('newOrderButton').addEventListener('click', () => startEditor(true));
 $('editButton').addEventListener('click', () => startEditor(false));
 $('captureButton').addEventListener('click', async () => {
   $('captureButton').disabled = true;
-  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage($('detailCapture'),selectedOrder?.orderName); status('이미지 다운로드를 시작했습니다.'); }
+  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage(selectedOrder.payload,selectedOrder.orderName,roster); status('이미지 다운로드를 시작했습니다.'); }
   catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
   finally { $('captureButton').disabled = !selectedOrder; }
 });
@@ -212,7 +212,7 @@ $('captureDraftButton').addEventListener('click', async () => {
   $('captureDraftButton').disabled = true;
   try {
     status('초안 이미지를 만드는 중입니다.');
-    await downloadOrderImage($('editorCapture'),$('orderName').value.trim() || '미저장 오더');
+    await downloadOrderImage(draft,$('orderName').value.trim() || '미저장 오더',roster);
     status('초안 이미지 다운로드를 시작했습니다.');
   } catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
   finally { $('captureDraftButton').disabled = false; }
