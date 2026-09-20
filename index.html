@@ -33,11 +33,13 @@
         <div class="orders-workspace">
           <section class="order-preview card">
             <div class="header-actions"><button id="editButton" class="primary-button" type="button" disabled>수정</button><button id="captureButton" class="secondary-button" type="button" disabled>캡처</button><button id="copyLinkButton" class="secondary-button" type="button" disabled>링크</button><button id="shareButton" class="secondary-button" type="button" disabled>공유</button></div>
+            <div id="detailCapture" class="order-capture">
             <h2 id="detailTitle">오더를 선택하세요</h2><p id="detailDate" class="muted"></p>
             <div id="detailField" class="field" aria-label="수비 포지션"></div>
             <div class="order-tables">
               <table class="classic-table lineup-table"><caption>선발 명단</caption><thead><tr><th>타순</th><th>선수명</th><th>포지션</th><th>투타</th></tr></thead><tbody id="detailLineup"></tbody></table>
               <table class="classic-table waiting-table"><caption>대기 명단</caption><thead><tr><th>선수명</th><th>투타</th></tr></thead><tbody id="detailWaiting"></tbody></table>
+            </div>
             </div>
           </section>
           <section class="order-list-panel card" aria-label="오더 목록">
@@ -69,12 +71,15 @@
         <div class="editor-workspace">
           <section class="participant-panel card"><h2>참가 명단 <small id="participantCount">0</small></h2><div class="add-row"><select id="addPlayerSelect" aria-label="참가 선수 추가"></select><button id="addPlayerButton" class="secondary-button" type="button">추가</button></div><table class="classic-table"><thead><tr><th>No</th><th>선수명</th><th>관리</th></tr></thead><tbody id="editorPlayers"></tbody></table></section>
           <section class="order-preview card">
+            <div id="editorCapture" class="order-capture">
+            <h2 id="editorCaptureTitle">미저장 오더</h2>
             <div id="editorField" class="field interactive-field" aria-label="수비 포지션 선택"></div>
             <div class="order-tables">
               <table class="classic-table lineup-table"><caption>선발 명단</caption><thead><tr><th>타순</th><th>선수명</th><th>포지션</th><th>투타</th></tr></thead><tbody id="editorLineup"></tbody></table>
               <table class="classic-table waiting-table"><caption>대기 명단</caption><thead><tr><th>선수명</th><th>투타</th></tr></thead><tbody id="editorWaiting"></tbody></table>
             </div>
             <p class="hint">대기 선수를 누르면 제외·복귀를 전환합니다.</p>
+            </div>
           </section>
           <section class="ability-panel card"><h2>포지션별 선수</h2><p class="hint">이름을 눌러 배치·해제합니다.</p><table class="classic-table"><thead><tr><th>포지션</th><th>구분</th><th>참가 선수</th></tr></thead><tbody id="editorAbilities"></tbody></table></section>
         </div>

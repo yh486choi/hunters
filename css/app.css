@@ -121,6 +121,7 @@ body.dark{color-scheme:dark;--bg:#0d1b30;--card:#162842;--text:#edf4ff;--muted:#
 
 /* Handedness and field-assigned waiting players. */
 .order-preview{container-type:inline-size}
+.order-capture{display:grid;gap:12px;min-width:0;background:var(--card);color:var(--text)}
 .order-tables{grid-template-columns:minmax(0,1fr) 126px}
 .lineup-table th:first-child{width:34px}
 .lineup-table th:nth-child(3){width:34%}

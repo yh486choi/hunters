@@ -96,6 +96,7 @@ function renderDetail() {
   renderOrderTables(state,{roster});
 }
 function renderEditor() {
+  $('editorCaptureTitle').textContent = $('orderName').value.trim() || '미저장 오더';
   const onAssign = (pos,name)=>mutate(()=>assignPosition(draft,pos,name));
   renderOrderField('editorField',draft,roster,onAssign);
   renderOrderTables(draft,{editable:true,roster,onAssign,onBatting:(index,name)=>mutate(()=>setBattingPlayer(draft,index,name)),onExcluded:(name,excluded)=>mutate(()=>setExcluded(draft,name,excluded))});
@@ -202,15 +203,19 @@ document.querySelectorAll('[data-view]').forEach(button => button.addEventListen
 $('newOrderButton').addEventListener('click', () => startEditor(true));
 $('editButton').addEventListener('click', () => startEditor(false));
 $('captureButton').addEventListener('click', async () => {
-  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage(draft,currentName); status('이미지 다운로드를 시작했습니다.'); }
+  $('captureButton').disabled = true;
+  try { status('오더 이미지를 만드는 중입니다.'); await downloadOrderImage($('detailCapture'),selectedOrder?.orderName); status('이미지 다운로드를 시작했습니다.'); }
   catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
+  finally { $('captureButton').disabled = !selectedOrder; }
 });
 $('captureDraftButton').addEventListener('click', async () => {
+  $('captureDraftButton').disabled = true;
   try {
     status('초안 이미지를 만드는 중입니다.');
-    await downloadOrderImage(draft,$('orderName').value.trim() || '미저장 오더');
+    await downloadOrderImage($('editorCapture'),$('orderName').value.trim() || '미저장 오더');
     status('초안 이미지 다운로드를 시작했습니다.');
   } catch (error) { status(`이미지 저장 실패: ${error.message}`,true); }
+  finally { $('captureDraftButton').disabled = false; }
 });
 $('shareButton').addEventListener('click', async () => {
   const url = new URL(location.href);
@@ -230,6 +235,7 @@ $('copyLinkButton').addEventListener('click', async () => {
 });
 $('saveButton').addEventListener('click', save);
 $('orderName').addEventListener('input', persistDraft);
+$('orderName').addEventListener('input', () => { $('editorCaptureTitle').textContent = $('orderName').value.trim() || '미저장 오더'; });
 $('resumeDraftButton').addEventListener('click', () => {
   const saved = loadDraft(localStorage);
   if (!saved) { refreshDraftNotice(); return status('이어 쓸 초안을 찾을 수 없습니다.',true); }
