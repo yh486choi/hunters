@@ -1,4 +1,4 @@
-import {readGameForm,fillGameForm,scheduleText,gameTitle} from './game-meta.js';
+import {readGameForm,fillGameForm,setupGameTime,scheduleText,gameTitle} from './game-meta.js';
 import { renderOrderField, renderOrderTables, renderParticipants, renderAbilities, renderOrderList } from './order-views.js';
 import {
   POSITIONS, createOrder, toPayload, validateOrder, assignPosition,
@@ -10,6 +10,7 @@ import { saveDraft, loadDraft, clearDraft } from './draft-store.js';
 import { setupRosterEditor } from './roster-editor.js';
 
 const $ = id => document.getElementById(id);
+setupGameTime();
 const coords = { CF:[50,16], LF:[18,28], RF:[82,28], SS:[33,48], '2B':[65,48], '3B':[18,67], '1B':[82,67], P:[50,69], C:[50,87], DH:[84,88] };
 const abilities = { P:'p', C:'c', '1B':'1b', '2B':'2b', '3B':'3b', SS:'ss', LF:'of', CF:'of', RF:'of' };
 let orders = [];
@@ -156,7 +157,7 @@ function startEditor(newOrder = false) {
   persistDraft();
 }
 async function save() {
-  for(const id of ['gameDate','gameTime','opponent']) if(!$(id).reportValidity())return;
+  for(const id of ['gameDate','gameHour','gameMinute','opponent']) if(!$(id).reportValidity())return;
   const game=readGameForm();
   if(!game.opponent)return status('상대팀명을 입력하세요.',true);
   const errors = validateOrder(draft);
@@ -227,7 +228,7 @@ $('copyLinkButton').addEventListener('click', async () => {
 });
 $('saveButton').addEventListener('click', save);
 function renderGameHeading(){const game=readGameForm();$('editorCaptureTitle').textContent=game.opponent||'상대팀 미정';$('editorSchedule').textContent=scheduleText(game);}
-for(const id of ['gameDate','gameTime','opponent'])$(id).addEventListener('input',()=>{renderGameHeading();persistDraft();});
+for(const id of ['gameDate','gameHour','gameMinute','opponent'])$(id).addEventListener('input',()=>{renderGameHeading();persistDraft();});
 $('resumeDraftButton').addEventListener('click', async () => {
   const saved = loadDraft(localStorage);
   if (!saved) { refreshDraftNotice(); return status('이어 쓸 초안을 찾을 수 없습니다.',true); }

@@ -3,7 +3,7 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
 function validDate(date){return typeof date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date)) && new Date(date).toISOString().slice(0,10)===date;}
 function validateGame(game){
   if(!game||!validDate(game.date))return '경기일을 선택하세요.';
-  if(typeof game.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(game.time))return '경기시간을 입력하세요.';
+  if(typeof game.time!=='string'||!/^([01]\d|2[0-3]):[0-5]0$/.test(game.time))return '경기시간을 24시간 기준 10분 단위로 선택하세요.';
   if(typeof game.opponent!=='string'||!game.opponent.trim()||game.opponent.trim().length>80)return '상대팀명을 80자 이내로 입력하세요.';
   return '';
 }

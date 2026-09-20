@@ -12,7 +12,8 @@ test('date/time validation and weekday formatting are timezone independent',()=>
   const valid={date:'2026-09-20',time:'12:00',opponent:'상대팀'};
   assert.equal(games.validateGame(valid),'');
   assert.equal(scheduleText(valid),'2026-09-20 (일) 12:00');
-  for(const game of [{...valid,date:'2026-02-30'},{...valid,time:'24:00'},{...valid,time:''},{...valid,opponent:' '}])assert.ok(games.validateGame(game));
+  for(const game of [{...valid,date:'2026-02-30'},{...valid,time:'24:00'},{...valid,time:'12:05'},{...valid,time:'23:59'},{...valid,time:''},{...valid,opponent:' '}])assert.ok(games.validateGame(game));
+  assert.equal(games.validateGame({...valid,time:'00:00'}),'');assert.equal(games.validateGame({...valid,time:'23:50'}),'');
 });
 test('IDs survive schedule edits and old identifiers round-trip without display fields',()=>{
   for(const key of ['NBL_260304_Overflow',games.newId()])assert.equal(games.toKey(games.toId(key)),key);
